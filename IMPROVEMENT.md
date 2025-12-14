@@ -419,17 +419,40 @@ The ASMODEUS system is **100% complete and functional** for training purposes. T
 
 ## 🎓 Training Improvements
 
-### Suggested Scenarios (v1.1)
-- [ ] Scenario 21: Group booking with mixed classes
-- [ ] Scenario 22: International multi-city
-- [ ] Scenario 23: Same-day changes
-- [ ] Scenario 24: Upgrade requests
-- [ ] Scenario 25: Waitlist management
-- [ ] Scenario 26: Codeshare flights
-- [ ] Scenario 27: Interline bookings
-- [ ] Scenario 28: Unaccompanied minor
-- [ ] Scenario 29: Pet in cabin
-- [ ] Scenario 30: Excess baggage
+### Comprehensive Scenario Suite
+
+| ID | Scenario Title | Difficulty | Objective |
+|----|----------------|------------|-----------|
+| **S01** | One-way Booking | Easy | Book 1 pax, price & ticket |
+| **S02** | Wrong Class Error | Easy | Fix invalid booking class |
+| **S03** | Overbooking | Easy | Handle no seats available |
+| **S04** | Two Passenger Booking | Easy | Book 2 pax same flight |
+| **S05** | Missing Name Field | Easy | Fix NEED NAME FIELD |
+| **S06** | Ignore Booking | Easy | Discard working area |
+| **S07** | Retrieve PNR | Easy | Display saved booking |
+| **S08** | Ticket Without Pricing | Medium | Fix PNR NOT PRICED |
+| **S09** | Void Ticket | Medium | Cancel issued ticket |
+| **S10** | Cancel Segment | Medium | Cancel flight segment |
+| **S11** | Seat Assignment | Medium | Assign seat to pax |
+| **S12** | SSR Entry | Medium | Add meal / wheelchair |
+| **S13** | DOCS Entry | Medium | Add passport details |
+| **S14** | TTL Expiry | Medium | Handle ticket time limit |
+| **S15** | Reprice Booking | Medium | FXB / FXP/R usage |
+| **S16** | Split PNR | Hard | Separate passengers |
+| **S17** | Modify Passenger | Hard | Cancel passenger |
+| **S18** | Queue Handling | Hard | Work with queues |
+| **S19** | Connection Booking | Hard | Multi-segment booking |
+| **S20** | Full Agent Drill | Hard | End-to-end booking |
+| **S21** | Group Booking | Hard | Handle block space (NG/SG) |
+| **S22** | Intl Multi-City | Hard | Complex itinerary & pricing |
+| **S23** | Same-Day Change | Medium | Rebooking urgency (SB) |
+| **S24** | Upgrade Request | Medium | Class modification |
+| **S25** | Waitlist Mgmt | Hard | Clear waitlist (KL/KK) |
+| **S26** | Codeshare Flight | Medium | Marketing vs Operating |
+| **S27** | Interline Booking | Hard | Multiple airlines ticketing |
+| **S28** | Unaccompanied Minor | Medium | SSR UMNR & handling |
+| **S29** | Pet in Cabin | Medium | SSR PETC integration |
+| **S30** | Excess Baggage | Easy | SSR XBAG entry |
 
 ---
 
