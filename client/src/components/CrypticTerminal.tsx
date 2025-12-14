@@ -85,8 +85,8 @@ export const CrypticTerminal: React.FC = () => {
                 <div ref={bottomRef} />
             </div>
 
-            <form onSubmit={handleSubmit} className="flex gap-2 border-t border-gray-700 pt-2 relative">
-                <span className="text-green-500 font-bold">&gt;</span>
+            <form onSubmit={handleSubmit} className="flex gap-2 pt-2 relative">
+                <span className="text-green-500 font-bold ml-1">&gt;</span>
                 {suggestion && input && suggestion.startsWith(input) && (
                     <div className="absolute left-6 top-2 text-gray-600 pointer-events-none font-mono">
                         {suggestion}
@@ -130,7 +130,7 @@ export const CrypticTerminal: React.FC = () => {
                             setSuggestion('');
                         }
                     }}
-                    className="input-field relative z-10 bg-transparent"
+                    className="input-field relative z-10 bg-transparent flex-1"
                     autoFocus
                     placeholder="ENTER COMMAND"
                 />
