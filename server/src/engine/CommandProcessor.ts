@@ -3,6 +3,8 @@ import { Session } from './Session.js';
 import { AvailabilityService } from './AvailabilityService.js';
 import { pool } from '../db/mysql.js';
 
+import { PnrService } from './PnrService.js';
+
 export class CommandProcessor {
     static async process(session: Session, intent: CommandIntent): Promise<string> {
 
@@ -30,10 +32,10 @@ export class CommandProcessor {
                     return scheduleResult.replace(/[A-Z]\d/g, '--'); // Remove seat counts
 
                 case CommandType.MOVE_DOWN:
-                    return "MD - SCROLL DOWN (NOT YET IMPLEMENTED)";
+                    return AvailabilityService.moveDown(session);
 
                 case CommandType.MOVE_UP:
-                    return "MU - SCROLL UP (NOT YET IMPLEMENTED)";
+                    return AvailabilityService.moveUp(session);
 
                 // ===== BOOKING =====
                 case CommandType.SELL:
@@ -111,9 +113,11 @@ export class CommandProcessor {
 
                 // ===== MISCELLANEOUS =====
                 case CommandType.OSI:
+                    session.area.osi.push(intent.args.osiText);
                     return `OSI ${intent.args.osiText} - ADDED`;
 
                 case CommandType.REMARK:
+                    session.area.remarks.push(intent.args.remarkText);
                     return `RM ${intent.args.remarkText} - ADDED`;
 
                 case CommandType.RECEIVED_FROM:
@@ -323,6 +327,8 @@ export class CommandProcessor {
         return "TWD - TICKET DISPLAY (NOT YET IMPLEMENTED)";
     }
 
+
+
     // ===== END & RETRIEVE =====
     private static async handleEndRetrieve(session: Session): Promise<string> {
         if (session.area.segments.length === 0) {
@@ -336,6 +342,9 @@ export class CommandProcessor {
         // Generate PNR locator
         const locator = this.generatePNRLocator();
         session.area.currentPnr = locator;
+
+        // Save to Database
+        await PnrService.createPnr(locator, session.area.passengers, session.area.segments, session.area.remarks, session.area.osi);
 
         // Format PNR display
         let output = `PNR CREATED: ${locator}\n\n`;
@@ -359,6 +368,20 @@ export class CommandProcessor {
             });
         }
 
+        // Remarks
+        if (session.area.remarks.length > 0) {
+            session.area.remarks.forEach(rm => {
+                output += `RM ${rm}\n`;
+            });
+        }
+
+        // OSI
+        if (session.area.osi.length > 0) {
+            session.area.osi.forEach(o => {
+                output += `OSI ${o}\n`;
+            });
+        }
+
         return output;
     }
 
@@ -375,7 +398,11 @@ export class CommandProcessor {
         const locator = this.generatePNRLocator();
         session.area.currentPnr = locator;
 
-        return `PNR SAVED: ${locator}`;
+        // Save to Database
+        const saved = await PnrService.createPnr(locator, session.area.passengers, session.area.segments, session.area.remarks, session.area.osi);
+        const dbMsg = saved ? "" : " (LOCAL ONLY - DB ERROR)";
+
+        return `PNR SAVED: ${locator}${dbMsg}`;
     }
 
     // ===== RETRIEVE =====
@@ -390,8 +417,40 @@ export class CommandProcessor {
             return `RETRIEVING ${session.area.currentPnr}...`;
         }
 
-        // Retrieve specific PNR
-        session.area.currentPnr = pnr;
+        // 1. Check if in session memory (simple optimization, though session resets often)
+        if (session.area.currentPnr === pnr) {
+            // Already loaded
+        }
+
+        // 2. Try to retrieve from DB
+        const dbPnr = await PnrService.retrievePnr(pnr);
+
+        if (dbPnr) {
+            session.area.currentPnr = pnr;
+            session.area.passengers = dbPnr.passengers;
+            session.area.segments = dbPnr.segments;
+            session.area.remarks = dbPnr.remarks;
+            session.area.osi = dbPnr.osi;
+
+            // Format Display
+            let output = `PNR RETRIEVED: ${pnr}\n\n`;
+            dbPnr.passengers.forEach(pax => output += `${pax.line}.${pax.lastName}/${pax.firstName} ${pax.type}\n`);
+            output += "\n";
+            dbPnr.segments.forEach(seg => output += `${seg.line}  ${seg.airline} ${seg.flightNumber} ${seg.class} ${seg.date} ${seg.origin}${seg.dest} ${seg.status}\n`);
+            output += "\n";
+
+            // Assume no contacts saved in DB yet (Task didn't specify Contact persistence, but ideally yes. Skip for now to stick to scope)
+
+            if (dbPnr.remarks && dbPnr.remarks.length > 0) {
+                dbPnr.remarks.forEach(rm => output += `RM ${rm}\n`);
+            }
+            if (dbPnr.osi && dbPnr.osi.length > 0) {
+                dbPnr.osi.forEach(o => output += `OSI ${o}\n`);
+            }
+
+            return output;
+        }
+
         return `PNR ${pnr} NOT FOUND`;
     }
 

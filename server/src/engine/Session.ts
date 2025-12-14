@@ -10,9 +10,16 @@ export class Session {
         segments: FlightSegment[];
         passengers: Passenger[];
         contacts: string[];
+        remarks: string[];
+        osi: string[];
         receivedFrom: string;
         currentPnr: string | null;
         pricedFare: number | null;
+        paging: {
+            currentStart: number;
+            totalItems: number;
+            pageSize: number;
+        };
     };
 
     constructor(sessionId: string) {
@@ -22,9 +29,12 @@ export class Session {
             segments: [],
             passengers: [],
             contacts: [],
+            remarks: [],
+            osi: [],
             receivedFrom: '',
             currentPnr: null,
-            pricedFare: null
+            pricedFare: null,
+            paging: { currentStart: 0, totalItems: 0, pageSize: 6 }
         };
     }
 
@@ -45,9 +55,12 @@ export class Session {
             segments: [],
             passengers: [],
             contacts: [],
+            remarks: [],
+            osi: [],
             receivedFrom: '',
             currentPnr: null,
-            pricedFare: null
+            pricedFare: null,
+            paging: { currentStart: 0, totalItems: 0, pageSize: 6 }
         };
     }
 }

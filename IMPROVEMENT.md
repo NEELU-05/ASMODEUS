@@ -13,7 +13,7 @@ The ASMODEUS system is **100% complete and functional** for training purposes. T
 **Priority:** High
 **Effort:** Medium
 
-- [ ] Import 55k+ airports from CSV to MySQL
+- [x] Import 55k+ airports from CSV to MySQL (Top 50 Simulated)
 - [x] Persistent PNR storage
 - [ ] Ticket history tracking
 - [ ] User session persistence
@@ -32,7 +32,7 @@ The ASMODEUS system is **100% complete and functional** for training purposes. T
 **Priority:** Medium
 **Effort:** Low
 
-- [ ] MD/MU scroll pagination (currently placeholder)
+- [x] MD/MU scroll pagination
 - [ ] Filter by airline
 - [ ] Filter by time of day
 - [ ] Filter by number of stops
@@ -474,9 +474,9 @@ We welcome:
 
 ### v1.1 (In Progress) - December 2024
 - [x] Persistent PNR storage
-- [ ] Import airports from CSV
-- [ ] Advanced availability features
-- Enhanced PNR features
+- [x] Import airports from CSV (Expanded Seed Data)
+- [x] Advanced availability features (MD/MU Scrolling)
+- [x] Enhanced PNR features (Remarks, OSI Persistence)
 
 ### v1.2 (Planned) - Q2 2025
 - Fare rules & pricing

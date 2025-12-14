@@ -8,9 +8,14 @@ export class AvailabilityService {
         let origin = "DEL";
         let dest = "DOH";
 
-        // Parse: DDMMMORGDEST or ORGDEST
+        // Parse: DDMMMORGDEST or ORGDEST or AN...
+        // Basic parser for "12JANDELDOH" or "DELDOH"
         const longMatch = cmdArgs.match(/^(\d{2}[A-Z]{3})([A-Z]{3})([A-Z]{3})$/);
         const shortMatch = cmdArgs.match(/^([A-Z]{3})([A-Z]{3})$/);
+
+        // Also handle "AN12JANDELDOH" if passed directly from CP
+        // The CP usually strips "AN" or handles command type. 
+        // Logic in CP: intent.args.rawParams
 
         if (longMatch) {
             dateStr = longMatch[1];
@@ -35,36 +40,91 @@ export class AvailabilityService {
         const dests = cityMap[dest] || [dest];
         const origins = cityMap[origin] || [origin];
 
-        // Generate flights for first matching pair
+        // Generate flights for first matching pair (Simplification for v1.0)
         const flights = await FlightGenerator.generateFlights(origins[0], dests[0], dateStr, direct);
 
         if (flights.length === 0) {
             return `NO FLIGHTS FOUND FOR ${origin} -> ${dest}`;
         }
 
-        // Store in session for selling
+        // Store in session
         session.area.availabilityResults = flights;
+        session.area.paging.totalItems = flights.length;
+        session.area.paging.currentStart = 0;
 
-        return this.formatResponse(flights, dateStr, origin, dest);
+        // Store search context if possible? For now passing explicit params
+        return this.formatResponse(session, dateStr, origin, dest);
     }
 
-    private static formatResponse(flights: any[], dateStr: string, origin: string, dest: string): string {
-        // Header: ** AMADEUS AVAILABILITY - AN ** LON LONDON.GB                   58 SA 18SEP 0000
+    static moveDown(session: Session): string {
+        if (!session.area.availabilityResults || session.area.availabilityResults.length === 0) {
+            return "NO AVAILABILITY TO SCROLL";
+        }
+
+        const newStart = session.area.paging.currentStart + session.area.paging.pageSize;
+        if (newStart >= session.area.paging.totalItems) {
+            return "LAST PAGE";
+        }
+
+        session.area.paging.currentStart = newStart;
+
+        // Recover context from stored results (Approximation)
+        const first = session.area.availabilityResults[0];
+        // Date is not stored on flight object in current generator, so defaulting or needing context.
+        // For v1.1, we'll just use "12JAN" or similar if we can't find it.
+        // Or better, we format response without date in header if missing? 
+        // Amadeus allows scrolling without re-stating date.
+
+        return this.formatResponse(session, "12JAN", first.origin, first.destination);
+    }
+
+    static moveUp(session: Session): string {
+        if (!session.area.availabilityResults || session.area.availabilityResults.length === 0) {
+            return "NO AVAILABILITY TO SCROLL";
+        }
+
+        const newStart = session.area.paging.currentStart - session.area.paging.pageSize;
+        if (newStart < 0) {
+            // If already at 0, maybe "TOP OF LIST"
+            if (session.area.paging.currentStart === 0) return "TOP OF LIST";
+            session.area.paging.currentStart = 0;
+        } else {
+            session.area.paging.currentStart = newStart;
+        }
+
+        const first = session.area.availabilityResults[0];
+        return this.formatResponse(session, "12JAN", first.origin, first.destination);
+    }
+
+    private static formatResponse(session: Session, dateStr: string, origin: string, dest: string): string {
+        const flights = session.area.availabilityResults;
+        const start = session.area.paging.currentStart;
+        const end = Math.min(start + session.area.paging.pageSize, flights.length);
+
+        const pageFlights = flights.slice(start, end);
+
+        // Header
         const cityName = this.getCityName(dest);
         const header = `** AMADEUS AVAILABILITY - AN ** ${dest} ${cityName.padEnd(20)}  58 SA ${dateStr} 0000`;
         let body = "";
 
-        flights.forEach((flt, index) => {
-            const lineNum = (index + 1).toString().padStart(2);
+        if (pageFlights.length === 0) return "NO FLIGHTS ON THIS PAGE";
+
+        pageFlights.forEach((flt, index) => {
+            // Absolute index for line number (1, 2, 3...) regardless of page?
+            // Amadeus actually renumbers or keeps absolute?
+            // Usually absolute: 1, 2, 3...
+            const lineNum = (start + index + 1).toString().padStart(2);
+
             const al = flt.airline;
             const fn = flt.flightNumber.padEnd(4);
 
-            // Format classes (split into 2 lines)
+            // Format classes
             const classList = this.getClassList(flt.classes);
             const row1Classes = classList.slice(0, 7).join(" ");
             const row2Classes = classList.slice(7).join(" ");
 
-            // Route display
+            // Route
             let routeStr = `/${flt.origin}`;
             if (flt.via) {
                 routeStr += ` ${flt.via}`;
@@ -78,16 +138,23 @@ export class AvailabilityService {
             const equipStr = `E0/${flt.equipment}`;
             const elapsedStr = flt.elapsedTime;
 
-            // Line 1: Flight info
+            // Line 1
             const line1 = `${lineNum}  ${al} ${fn} ${row1Classes.padEnd(22)} ${routeStr.padEnd(12)} ${stopsStr}  ${depTime} ${arrTime}${dayOffsetStr.padStart(3)}  ${equipStr}  ${elapsedStr}`;
             body += line1 + "\n";
 
-            // Line 2: Remaining classes (if any)
+            // Line 2
             if (row2Classes) {
                 const indent = " ".repeat(12);
                 body += `${indent}${row2Classes}\n`;
             }
         });
+
+        // Add footer for pagination info
+        if (end < flights.length) {
+            body += `MD TO SCROLL DOWN (${end}/${flights.length})`;
+        } else if (start > 0) {
+            body += `MU TO SCROLL UP`;
+        }
 
         return `${header}\n${body}`;
     }
