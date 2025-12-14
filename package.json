@@ -1,0 +1,33 @@
+{
+  "name": "asmodeus-selling-platform",
+  "version": "1.0.0",
+  "description": "Amadeus CRS Training Simulator",
+  "main": "server/dist/index.js",
+  "type": "module",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "scripts": {
+    "dev": "concurrently \"npm run dev-server\" \"npm run dev-client\"",
+    "dev-server": "npm run dev --prefix server",
+    "dev-client": "npm run dev --prefix client",
+    "build": "npm run build-server && npm run build-client",
+    "build-server": "npm run build --prefix server",
+    "build-client": "npm run build --prefix client",
+    "start": "node server/dist/index.js",
+    "postinstall": "npm install --prefix server && npm install --prefix client"
+  },
+  "keywords": [
+    "amadeus",
+    "crs",
+    "training",
+    "simulator",
+    "gds"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
