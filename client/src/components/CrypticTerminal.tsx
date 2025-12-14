@@ -16,6 +16,20 @@ export const CrypticTerminal: React.FC = () => {
 
     const COMMANDS = ['AN', 'SS', 'NM', 'AP', 'TK', 'ER', 'ET', 'IG', 'RT', 'FXP', 'TTP', 'HE', 'MD', 'MU', 'RH', 'QS', 'QD', 'QE', 'AC', 'MN', 'MY'];
 
+    const highlightSyntax = (text: string) => {
+        let processed = text
+            // Highlight Dates (e.g., 12JAN, 05MAR)
+            .replace(/(\d{2}[A-Z]{3})/g, '<span class="text-yellow-400">$1</span>')
+            // Highlight Status Codes (HK, TK, UC, UN)
+            .replace(/\b(HK|TK|UC|UN|KL|KK)\b/g, '<span class="text-green-400 font-bold">$1</span>')
+            // Highlight Error Keywords
+            .replace(/\b(ERROR|INVALID|CHECK|NO ITIN|NEED)\b/g, '<span class="text-red-400 font-bold">$1</span>')
+            // Highlight PNR Locators (Simple 6-char alphanum check might be too eager, so context dependent usually better. Simulating with specific pattern or just letting manual highlights work)
+            .replace(/(PNR CREATED: )([A-Z0-9]{6})/g, '$1<span class="text-cyan-400 font-bold text-lg">$2</span>');
+
+        return processed;
+    };
+
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [history]);
@@ -65,8 +79,13 @@ export const CrypticTerminal: React.FC = () => {
             ${line.type === 'input' ? 'text-gray-400' : ''}
             ${line.type === 'output' ? 'terminal-text' : ''}
             ${line.type === 'error' ? 'text-red-500' : ''}
+            whitespace-pre-wrap font-mono
           `}>
-                        {line.content}
+                        {line.type === 'output' ? (
+                            <span dangerouslySetInnerHTML={{ __html: highlightSyntax(line.content) }} />
+                        ) : (
+                            line.content
+                        )}
                     </div>
                 ))}
                 <div ref={bottomRef} />

@@ -6,6 +6,7 @@ interface Scenario {
   title: string;
   description: string;
   goal: string;
+  hint?: string;
 }
 
 function App() {
@@ -14,6 +15,7 @@ function App() {
   const [completedScenarios, setCompletedScenarios] = useState<number[]>([]);
   const [startTime, setStartTime] = useState<number | null>(null);
   const [elapsed, setElapsed] = useState(0);
+  const [showHint, setShowHint] = useState(false);
   useEffect(() => {
     fetch('/api/scenarios')
       .then(res => res.json())
@@ -70,7 +72,7 @@ function App() {
             {scenarios.map(s => (
               <div
                 key={s.id}
-                onClick={() => { setActiveScenario(s); setStartTime(Date.now()); }}
+                onClick={() => { setActiveScenario(s); setStartTime(Date.now()); setShowHint(false); }}
                 className={`p-2 rounded cursor-pointer transition-colors flex justify-between items-center ${activeScenario?.id === s.id ? 'bg-[var(--text-accent)] text-[var(--bg-core)] font-bold' : 'hover:bg-[var(--bg-input)]'}`}
               >
                 <span>{s.id}. {s.title}</span>
@@ -94,6 +96,22 @@ function App() {
                 <span className="text-green-500 font-bold">GOAL:</span>
                 <p className="text-gray-400 mt-1 font-mono text-xs">{activeScenario.goal}</p>
               </div>
+
+              {activeScenario.hint && (
+                <div className="mt-4">
+                  <button
+                    onClick={() => setShowHint(!showHint)}
+                    className="text-xs text-[var(--text-accent)] underline hover:text-white"
+                  >
+                    {showHint ? 'Hide Hint' : 'Show Hint'}
+                  </button>
+                  {showHint && (
+                    <div className="mt-2 p-2 bg-yellow-900/30 border border-yellow-700 rounded text-xs text-yellow-200">
+                      💡 {activeScenario.hint}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {!completedScenarios.includes(activeScenario.id) ? (
                 <div className="mt-6 p-4 bg-gray-900 rounded border border-gray-700 text-center">
