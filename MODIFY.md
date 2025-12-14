@@ -2,7 +2,7 @@
 
 (Aligned with Official Amadeus Training Manual – 8689466.pdf)
 
-## 0. Formatting & Host Display Rule (NEW – FOUNDATIONAL)
+## 0. Formatting & Host Display Rule (NEW – FOUNDATIONAL) ✅ COMPLETE
 **Fixed-Width Host Formatting Rule**
 
 Amadeus uses fixed-column formatting, not free text.
@@ -41,7 +41,7 @@ Missing navigation depth, status realism, and training validation logic.
 
 ---
 
-## 2. Phase 1: Core Navigation & Display (HIGH PRIORITY) ✅ PARTIALLY COMPLETE
+## 2. Phase 1: Core Navigation & Display (HIGH PRIORITY) ✅ COMPLETE
 *Goal: Move from scripted flows to real exploratory navigation, exactly like live Amadeus.*
 
 **Commands:**
@@ -51,8 +51,8 @@ Missing navigation depth, status realism, and training validation logic.
 | **AC / ACR** | Change availability parameters | ✅ Implemented |
 | **MN / MY** | Move next / previous day | ✅ Implemented |
 | **MP / MT / MB** | Page navigation | ✅ Implemented |
-| **SN / SD** | Schedule display | Pending |
-| **TN** | Timetable | Pending |
+| **SN / SD** | Schedule display | ✅ Implemented |
+| **TN** | Timetable | ✅ Implemented |
 
 **Display Requirement:**
 -   All outputs must follow **Fixed-width layout**
