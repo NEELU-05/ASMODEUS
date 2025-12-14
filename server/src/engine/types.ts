@@ -25,6 +25,8 @@ export enum CommandType {
     CONTACT = 'CONTACT',
     SSR = 'SSR',
     TICKET_TIME_LIMIT = 'TICKET_TIME_LIMIT',
+    SEAT_REQUEST = 'SEAT_REQUEST',
+    SEAT_MAP = 'SEAT_MAP',
 
     // Pricing & Ticketing
     FARE_QUOTE = 'FARE_QUOTE',
@@ -43,6 +45,7 @@ export enum CommandType {
     CANCEL_SEGMENT = 'CANCEL_SEGMENT',
     CANCEL_ITINERARY = 'CANCEL_ITINERARY',
     CANCEL_NAME = 'CANCEL_NAME',
+    CHANGE_NAME = 'CHANGE_NAME',
     SPLIT_PNR = 'SPLIT_PNR',
 
     // History & Queue

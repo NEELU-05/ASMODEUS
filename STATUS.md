@@ -57,9 +57,10 @@ Need to implement handlers for:
    - ⚠ SS - Sell seats (reduce inventory, add to working area)
    - ⚠ NN - Need seats (hold without confirmation)
    - ⚠ RR - Reconfirm
-   - ⚠ NM - Add passenger names
+   - ✅ NM - Add/Change passenger names
    - ⚠ AP - Add contact details
-   - ⚠ SR - Add SSRs (VGML, WCHR, etc.)
+   - ✅ SR - Add SSRs (Store in Session)
+   - ✅ ST/SM - Seat Assignments
    - ⚠ TKTL - Ticket time limit
 
 3. **Pricing & Ticketing**
@@ -79,7 +80,7 @@ Need to implement handlers for:
    - ⚠ XE - Cancel segment (release inventory)
    - ⚠ XI - Cancel itinerary
    - ⚠ XN - Cancel name
-   - ⚠ SP - Split PNR
+   - ✅ SP - Split PNR
 
 6. **History & Queue**
    - ⚠ RH/RHA - Display history

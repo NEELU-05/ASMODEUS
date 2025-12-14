@@ -50,6 +50,9 @@ export class CommandProcessor {
                 case CommandType.NAME:
                     return this.handleName(session, intent.args);
 
+                case CommandType.CHANGE_NAME:
+                    return this.handleChangeName(session, intent.args);
+
                 case CommandType.CONTACT:
                     return this.handleContact(session, intent.args);
 
@@ -58,6 +61,12 @@ export class CommandProcessor {
 
                 case CommandType.TICKET_TIME_LIMIT:
                     return this.handleTicketTimeLimit(session, intent.args);
+
+                case CommandType.SEAT_REQUEST:
+                    return this.handleSeatRequest(session, intent.args);
+
+                case CommandType.SEAT_MAP:
+                    return this.handleSeatMap(session, intent.args);
 
                 // ===== PRICING & TICKETING =====
                 case CommandType.FARE_QUOTE:
@@ -100,7 +109,7 @@ export class CommandProcessor {
                     return this.handleCancelName(session, intent.args);
 
                 case CommandType.SPLIT_PNR:
-                    return "SP - SPLIT PNR (NOT YET IMPLEMENTED)";
+                    return await this.handleSplitPnr(session, intent.args);
 
                 // ===== HISTORY & QUEUE =====
                 case CommandType.HISTORY:
@@ -264,6 +273,7 @@ export class CommandProcessor {
 
     // ===== SSR =====
     private static handleSSR(session: Session, args: any): string {
+        session.area.ssrs.push(args.ssrCode);
         return `SR ${args.ssrCode} - ADDED`;
     }
 
@@ -517,6 +527,65 @@ FXP - PRICE
 TTP - TICKET
 RT - RETRIEVE
 HE - HELP`;
+    }
+
+    // ===== CHANGE NAME =====
+    private static handleChangeName(session: Session, args: any): string {
+        const { line, lastName, firstName } = args;
+        if (line < 1 || line > session.area.passengers.length) {
+            return "INVALID NAME LINE";
+        }
+
+        const pax = session.area.passengers[line - 1];
+        pax.lastName = lastName;
+        pax.firstName = firstName;
+
+        return `${line}.${lastName}/${firstName}`;
+    }
+
+    // ===== SPLIT PNR =====
+    private static async handleSplitPnr(session: Session, args: any): Promise<string> {
+        const paxNum = args.passengerNumber;
+
+        if (session.area.passengers.length === 0) {
+            return "NO NAMES";
+        }
+
+        if (paxNum < 1 || paxNum > session.area.passengers.length) {
+            return "INVALID PASSENGER";
+        }
+
+        const splitPax = session.area.passengers[paxNum - 1];
+        session.area.passengers.splice(paxNum - 1, 1);
+
+        // Renumber remaining passengers
+        session.area.passengers.forEach((p, i) => {
+            p.line = i + 1;
+        });
+
+        const newLocator = this.generatePNRLocator();
+
+        // In a real system, we would create a new PNR record here.
+        // For simulation, we assume it's filed.
+
+        return `SPLIT PNR\nORIGINAL PNR RETAINED\nNEW PNR CREATED: ${newLocator}\nPASSENGER: ${splitPax.lastName}/${splitPax.firstName}`;
+    }
+
+    // ===== SEATS =====
+    private static handleSeatRequest(session: Session, args: any): string {
+        const req = args.request;
+        session.area.seats.push(req);
+        return `ST ${req} - REQUEST PROCESSED`;
+    }
+
+    private static handleSeatMap(session: Session, args: any): string {
+        return `
+       A   B   C       D   E   F
+ 10    .   .   .       .   .   .
+ 11    .   X   X       .   .   .
+ 12    .   .   .       .   .   .
+ 13    .   .   .       .   .   .
+`;
     }
 
     // ===== UTILITIES =====

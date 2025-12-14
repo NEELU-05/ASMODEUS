@@ -116,6 +116,20 @@ export class CommandParser {
             };
         }
 
+        // Name Change: 1/NewLast/NewFirst
+        if (cmd.match(/^(\d+)\/([A-Z]+)\/([A-Z\s]+)$/)) {
+            const match = cmd.match(/^(\d+)\/([A-Z]+)\/([A-Z\s]+)$/);
+            return {
+                type: CommandType.CHANGE_NAME,
+                raw: input,
+                args: {
+                    line: parseInt(match![1]),
+                    lastName: match![2],
+                    firstName: match![3].trim()
+                }
+            };
+        }
+
         // Contact: AP MUM 9876543210
         if (cmd.match(/^AP\s/)) {
             return {
@@ -131,6 +145,24 @@ export class CommandParser {
                 type: CommandType.SSR,
                 raw: input,
                 args: { ssrCode: cmd.substring(3) }
+            };
+        }
+
+        // Seat Request: ST/12A
+        if (cmd.match(/^ST/)) {
+            return {
+                type: CommandType.SEAT_REQUEST,
+                raw: input,
+                args: { request: cmd.substring(2) }
+            };
+        }
+
+        // Seat Map: SM2 or SM
+        if (cmd.match(/^SM/)) {
+            return {
+                type: CommandType.SEAT_MAP,
+                raw: input,
+                args: { request: cmd.substring(2) }
             };
         }
 

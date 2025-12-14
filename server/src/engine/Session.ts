@@ -12,6 +12,8 @@ export class Session {
         contacts: string[];
         remarks: string[];
         osi: string[];
+        ssrs: string[];
+        seats: string[];
         receivedFrom: string;
         currentPnr: string | null;
         pricedFare: number | null;
@@ -31,6 +33,8 @@ export class Session {
             contacts: [],
             remarks: [],
             osi: [],
+            ssrs: [],
+            seats: [],
             receivedFrom: '',
             currentPnr: null,
             pricedFare: null,
@@ -57,6 +61,8 @@ export class Session {
             contacts: [],
             remarks: [],
             osi: [],
+            ssrs: [],
+            seats: [],
             receivedFrom: '',
             currentPnr: null,
             pricedFare: null,

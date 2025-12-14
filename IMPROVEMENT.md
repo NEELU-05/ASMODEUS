@@ -50,12 +50,12 @@ The ASMODEUS system is **100% complete and functional** for training purposes. T
 **Priority:** Medium
 **Effort:** Medium
 
-- [ ] Split PNR (SP command - currently placeholder)
-- [ ] Divide PNR functionality
-- [ ] Name changes
-- [ ] Seat assignments (SM/ST commands)
-- [ ] Meal preferences per segment
-- [ ] Frequent flyer integration
+- [x] Split PNR (SP command - implemented)
+- [x] Divide PNR functionality
+- [x] Name changes (1/LAST/FIRST implemented)
+- [x] Seat assignments (SM/ST commands implemented)
+- [x] Meal preferences per segment (via SR command storage)
+- [x] Frequent flyer integration (via SR command storage)
 
 **Benefits:**
 - Complete PNR lifecycle
