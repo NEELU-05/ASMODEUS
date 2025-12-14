@@ -130,13 +130,13 @@ The ASMODEUS system is **100% complete and functional** for training purposes. T
 **Effort:** Medium
 
 - [x] Command autocomplete (Basic logic added)
-- [ ] Syntax highlighting
-- [ ] Error highlighting
+- [x] Syntax highlighting
+- [x] Error highlighting
 - [x] Command history navigation (Up/Down Arrows)
 - [ ] Command history search (Ctrl+R)
 - [x] Keyboard shortcuts (Arrow keys)
-- [ ] Copy/paste PNR data
-- [ ] Export PNR to PDF
+- [x] Copy/paste PNR data (Copy All button)
+- [x] Export PNR to PDF (Print button)
 
 **Benefits:**
 - Better user experience
@@ -151,12 +151,12 @@ The ASMODEUS system is **100% complete and functional** for training purposes. T
 **Effort:** Low
 
 - [x] Scenario progress tracking (Client-side)
-- [ ] Hints system
+- [x] Hints system
 - [ ] Step-by-step guidance
-- [ ] Performance scoring
+- [x] Performance scoring (Basic Base - Time)
 - [x] Time tracking per scenario
 - [ ] Leaderboard
-- [ ] Certification mode
+- [x] Certification mode (Toggle added)
 
 **Benefits:**
 - Gamification

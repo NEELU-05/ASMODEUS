@@ -16,6 +16,8 @@ function App() {
   const [startTime, setStartTime] = useState<number | null>(null);
   const [elapsed, setElapsed] = useState(0);
   const [showHint, setShowHint] = useState(false);
+  const [certMode, setCertMode] = useState(false);
+  const [score, setScore] = useState<number | null>(null);
   useEffect(() => {
     fetch('/api/scenarios')
       .then(res => res.json())
@@ -40,8 +42,15 @@ function App() {
   const handleComplete = () => {
     if (activeScenario) {
       setCompletedScenarios([...completedScenarios, activeScenario.id]);
+
+      // Basic Scoring: 1000 base - (1 point per sec)
+      // Cert Mode Bonus: +500
+      let calc = 1000 - elapsed;
+      if (certMode) calc += 500;
+      if (calc < 0) calc = 0;
+      setScore(calc);
+
       setStartTime(null);
-      setElapsed(0);
     }
   };
 
@@ -57,7 +66,13 @@ function App() {
       <div className="w-2/3 h-full">
         <div className="h-8 mb-2 flex items-center justify-between">
           <h1 className="text-[var(--text-accent)] font-bold tracking-wider">AMADEUS <span className="text-white opacity-50">CONNECT</span></h1>
-          <div className="text-xs text-gray-500">PRACTICE MODE</div>
+          <div className="flex gap-4 text-xs font-mono items-center">
+            <label className="flex items-center gap-2 cursor-pointer hover:text-white transition-colors text-gray-400">
+              <input type="checkbox" checked={certMode} onChange={e => setCertMode(e.target.checked)} className="accent-[var(--text-accent)]" />
+              CERTIFICATION MODE
+            </label>
+            <div className="text-gray-500">PRACTICE MODE</div>
+          </div>
         </div>
         <CrypticTerminal />
       </div>
@@ -97,7 +112,7 @@ function App() {
                 <p className="text-gray-400 mt-1 font-mono text-xs">{activeScenario.goal}</p>
               </div>
 
-              {activeScenario.hint && (
+              {activeScenario.hint && !certMode && (
                 <div className="mt-4">
                   <button
                     onClick={() => setShowHint(!showHint)}
@@ -124,8 +139,13 @@ function App() {
                   </button>
                 </div>
               ) : (
-                <div className="mt-6 p-4 bg-green-900/30 border border-green-600 rounded text-center text-green-400 font-bold uppercase">
-                  Scenario Completed!
+                <div className="mt-6 p-4 bg-green-900/30 border border-green-600 rounded text-center">
+                  <div className="text-green-400 font-bold uppercase mb-2">Scenario Completed!</div>
+                  {score !== null && (
+                    <div className="text-3xl font-mono text-white tracking-widest">
+                      SCORE: {score}
+                    </div>
+                  )}
                 </div>
               )}
             </div>

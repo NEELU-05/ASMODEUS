@@ -65,9 +65,22 @@ export const CrypticTerminal: React.FC = () => {
         }
     };
 
+    const handleCopy = () => {
+        const text = history.map(h => h.content).join('\n');
+        navigator.clipboard.writeText(text);
+    };
+
+    const handlePrint = () => {
+        window.print();
+    };
+
     return (
-        <div className="flex flex-col h-full glass rounded-lg overflow-hidden p-4">
-            <div className="flex-1 overflow-y-auto mb-4 font-mono text-sm space-y-2">
+        <div className="flex flex-col h-full glass rounded-lg overflow-hidden p-4 relative">
+            <div className="absolute top-2 right-4 flex gap-2 text-xs no-print">
+                <button onClick={handleCopy} className="text-gray-400 hover:text-white border border-gray-600 rounded px-2 py-1">COPY ALL</button>
+                <button onClick={handlePrint} className="text-gray-400 hover:text-white border border-gray-600 rounded px-2 py-1">PRINT</button>
+            </div>
+            <div className="flex-1 overflow-y-auto mb-4 font-mono text-sm space-y-2 mt-6">
                 {history.length === 0 && (
                     <div className="text-gray-500">
                         AMADEUS SELLING PLATFORM CONNECT (SIMULATOR)<br />
