@@ -138,6 +138,26 @@ body {
   justify-content: space-between;
 }
 
+.flex-1 {
+  flex: 1 1 0%;
+}
+
+.relative {
+  position: relative;
+}
+
+.z-10 {
+  z-index: 10;
+}
+
+.ml-1 {
+  margin-left: 0.25rem;
+}
+
+.bg-transparent {
+  background-color: transparent;
+}
+
 /* Spacing */
 .p-4 {
   padding: 1rem;
@@ -231,14 +251,17 @@ body {
   opacity: 0.5;
 }
 
-background: transparent;
-border: none;
-font-family: var(--font-mono);
-color: var(--text-primary);
-outline: none;
-width: 100%;
-font-size: 1rem;
-text-transform: uppercase;
+.input-field {
+  background-color: transparent !important;
+  border: none;
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+  outline: none;
+  width: 100%;
+  font-size: 1rem;
+  text-transform: uppercase;
+  appearance: none;
+  /* Remove default browser styling */
 }
 
 @media print {
