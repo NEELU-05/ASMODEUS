@@ -1,6 +1,6 @@
-import { FlightGenerator } from './FlightGenerator';
-import { formatAmadeusDate } from '../utils/dateHash';
-import { Session } from './Session';
+import { FlightGenerator } from './FlightGenerator.js';
+import { formatAmadeusDate } from '../utils/dateHash.js';
+import { Session } from './Session.js';
 
 export class AvailabilityService {
     static async search(session: Session, cmdArgs: string, direct: boolean = false): Promise<string> {

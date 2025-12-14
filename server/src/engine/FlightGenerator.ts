@@ -1,5 +1,5 @@
-import { DateHashRandom, parseAmadeusDate, formatAmadeusDate, calculateDayOffset, calculateElapsedTime } from '../utils/dateHash';
-import { pool } from '../db/mysql';
+import { DateHashRandom, parseAmadeusDate, formatAmadeusDate, calculateDayOffset, calculateElapsedTime } from '../utils/dateHash.js';
+import { pool } from '../db/mysql.js';
 
 interface GeneratedFlight {
     airline: string;

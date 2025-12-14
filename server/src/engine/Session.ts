@@ -1,4 +1,4 @@
-import { FlightSegment, Passenger } from './types';
+import { FlightSegment, Passenger } from './types.js';
 
 export class Session {
     sessionId: string;

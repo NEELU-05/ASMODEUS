@@ -1,7 +1,7 @@
-import { CommandIntent, CommandType, FlightSegment, Passenger } from './types';
-import { Session } from './Session';
-import { AvailabilityService } from './AvailabilityService';
-import { pool } from '../db/mysql';
+import { CommandIntent, CommandType, FlightSegment, Passenger } from './types.js';
+import { Session } from './Session.js';
+import { AvailabilityService } from './AvailabilityService.js';
+import { pool } from '../db/mysql.js';
 
 export class CommandProcessor {
     static async process(session: Session, intent: CommandIntent): Promise<string> {

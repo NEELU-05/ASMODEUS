@@ -1,4 +1,4 @@
-import { CommandIntent, CommandType } from './types';
+import { CommandIntent, CommandType } from './types.js';
 
 export class CommandParser {
     static parse(input: string): CommandIntent {
