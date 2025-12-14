@@ -37,6 +37,15 @@ export class CommandParser {
             };
         }
 
+        // Availability Change: AC12JAN
+        if (cmd.match(/^AC/)) {
+            return {
+                type: CommandType.AVAILABILITY_CHANGE,
+                raw: input,
+                args: { newDate: cmd.substring(2) }
+            };
+        }
+
         // Schedule Neutral: SN12JANDELDOH
         if (cmd.match(/^SN/)) {
             return {
@@ -63,6 +72,27 @@ export class CommandParser {
         // Move Up: MU
         if (cmd === 'MU') {
             return { type: CommandType.MOVE_UP, raw: input, args: {} };
+        }
+
+        // Move Top/Bottom: MP, MT, MB
+        if (cmd === 'MT') {
+            return { type: CommandType.MOVE_TOP, raw: input, args: {} };
+        }
+        if (cmd === 'MB') {
+            return { type: CommandType.MOVE_BOTTOM, raw: input, args: {} };
+        }
+
+        // Move Next/Previous Day: MN, MY
+        if (cmd.match(/^MN/)) {
+            return { type: CommandType.MOVE_NEXT_DAY, raw: input, args: { days: 1 } };
+        }
+        if (cmd.match(/^MY/)) {
+            return { type: CommandType.MOVE_PREVIOUS_DAY, raw: input, args: { days: 1 } };
+        }
+
+        // Timetable: TN
+        if (cmd.match(/^TN/)) {
+            return { type: CommandType.TIMETABLE, raw: input, args: { rawParams: cmd.substring(2) } };
         }
 
         // Sell: SS1Y1 (1 seat, class Y, line 1)
@@ -323,9 +353,13 @@ export class CommandParser {
             return { type: CommandType.RECEIVED_FROM, raw: input, args: {} };
         }
 
-        // Help: HE
-        if (cmd === 'HE') {
-            return { type: CommandType.HELP, raw: input, args: {} };
+        // Help: HE or HE COMMAND
+        if (cmd.match(/^HE/)) {
+            return {
+                type: CommandType.HELP,
+                raw: input,
+                args: { topic: cmd.substring(2).trim() }
+            };
         }
 
         // Unknown

@@ -41,6 +41,24 @@ export class CommandProcessor {
                 case CommandType.MOVE_UP:
                     return AvailabilityService.moveUp(session);
 
+                case CommandType.MOVE_TOP:
+                    return AvailabilityService.moveTop(session);
+
+                case CommandType.MOVE_BOTTOM:
+                    return AvailabilityService.moveBottom(session);
+
+                case CommandType.AVAILABILITY_CHANGE:
+                    return await AvailabilityService.changeDate(session, intent.args.newDate);
+
+                case CommandType.MOVE_NEXT_DAY:
+                    return await AvailabilityService.moveNextDay(session, intent.args.days);
+
+                case CommandType.MOVE_PREVIOUS_DAY:
+                    return await AvailabilityService.movePreviousDay(session, intent.args.days);
+
+                case CommandType.TIMETABLE:
+                    return await AvailabilityService.getTimetable(session, intent.args.rawParams);
+
                 // ===== BOOKING =====
                 case CommandType.SELL:
                     return await this.handleSell(session, intent.args);
@@ -137,7 +155,7 @@ export class CommandProcessor {
                     return "RC - RECEIVED FROM (NOT YET IMPLEMENTED)";
 
                 case CommandType.HELP:
-                    return this.handleHelp();
+                    return this.handleHelp(intent.args.topic);
 
                 case CommandType.UNKNOWN:
                 default:
@@ -537,18 +555,32 @@ export class CommandProcessor {
     }
 
     // ===== HELP =====
-    private static handleHelp(): string {
-        return `AMADEUS COMMANDS:
-JI - SIGN IN
-AN - AVAILABILITY
-SS - SELL
-NM - NAME
-AP - CONTACT
-ER - END & RETRIEVE
-FXP - PRICE
-TTP - TICKET
-RT - RETRIEVE
-HE - HELP`;
+    private static handleHelp(topic?: string): string {
+        if (!topic) {
+            return `
+ASMODEUS HELP SYSTEM
+--------------------
+ENTER HE <TOPIC> FOR MORE INFO.
+
+TOPICS:
+  SIGN, AVAIL, SELL, NAME, CONT,
+  PNR, PRICE, TKT, QUEUE, HIST
+`;
+        }
+
+        const t = topic.toUpperCase();
+        if (t.startsWith("SIGN")) return "SIGN IN: JI <ID>/<OFFICE>\nSIGN OUT: JO";
+        if (t.startsWith("AVAIL")) return "AVAILABILITY: AN <DATE><ORG><DEST>\nSCROLL: MD/MU/MT/MB\nCHANGE DATE: AC <DATE>\nNEXT/PREV DAY: MN/MY";
+        if (t.startsWith("SELL")) return "SELL SEAT: SS <QTY><CLS><LINE>\nEX: SS1Y1";
+        if (t.startsWith("NAME")) return "ADD NAME: NM <QTY><LAST>/<FIRST> <TITLE>\nEX: NM1SMITH/JOHN MR";
+        if (t.startsWith("CONT")) return "CONTACT: AP <CITY> <PHONE>\nEX: AP DEL 9999999999";
+        if (t.startsWith("PNR")) return "SAVE: ER (END & RETRIEVE)\nIGNORE: IG\nRETRIEVE: RT <LOCATOR>";
+        if (t.startsWith("PRICE")) return "PRICE PNR: FXP\nBEST BUY: FXB (TODO)";
+        if (t.startsWith("TKT")) return "ISSUE TICKET: TTP\nADD TIME LIMIT: TKTL <DATE>\nADD ELEMENT: TK OK";
+        if (t.startsWith("QUEUE")) return "START: QS <Q_NUM>\nDISPLAY: QD\nEXIT: QE";
+        if (t.startsWith("HIST")) return "HISTORY: RH\nFULL HISTORY: RHA";
+
+        return `UNKNOWN TOPIC: ${topic}\nTRY 'HE' FOR LIST OF TOPICS`;
     }
 
     // ===== CHANGE NAME =====

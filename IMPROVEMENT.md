@@ -417,9 +417,7 @@ The ASMODEUS system is **100% complete and functional** for training purposes. T
 
 ---
 
-## 🎓 Training Improvements
 
-### Comprehensive Scenario Suite
 
 | ID | Scenario Title | Difficulty | Objective |
 |----|----------------|------------|-----------|
@@ -455,7 +453,9 @@ The ASMODEUS system is **100% complete and functional** for training purposes. T
 | **S30** | Excess Baggage | Easy | SSR XBAG entry |
 
 ---
+## 🎓 Training Improvements
 
+### Comprehensive Scenario Suite
 ## 🔄 Continuous Improvement
 
 ### Monthly Reviews

@@ -84,6 +84,45 @@ export class AvailabilityService {
         return this.formatResponse(session, "12JAN", first.origin, first.destination);
     }
 
+    static moveTop(session: Session): string {
+        if (!session.area.availabilityResults?.length) return "NO AVAILABILITY TO SCROLL";
+
+        session.area.paging.currentStart = 0;
+        const first = session.area.availabilityResults[0];
+        return this.formatResponse(session, "12JAN", first.origin, first.destination);
+    }
+
+    static moveBottom(session: Session): string {
+        if (!session.area.availabilityResults?.length) return "NO AVAILABILITY TO SCROLL";
+
+        // Go to last page
+        const lastPageStart = Math.floor((session.area.paging.totalItems - 1) / session.area.paging.pageSize) * session.area.paging.pageSize;
+        session.area.paging.currentStart = lastPageStart;
+
+        const first = session.area.availabilityResults[0];
+        return this.formatResponse(session, "12JAN", first.origin, first.destination);
+    }
+
+    static async moveNextDay(session: Session, days: number = 1): Promise<string> {
+        // Mock implementation: Just refreshes current results but claims it is +1 day
+        // Ideally should extract current date, add days, and re-search.
+        // For v1, let's re-run last search params if implementation allowed, else stub.
+        return "FOLLOWING DAY - 13JAN (MOCKED)";
+    }
+
+    static async movePreviousDay(session: Session, days: number = 1): Promise<string> {
+        return "PREVIOUS DAY - 11JAN (MOCKED)";
+    }
+
+    static async changeDate(session: Session, newDate: string): Promise<string> {
+        // Should re-trigger search with new date but same OD
+        return `AVAILABILITY CHANGE TO ${newDate} - (MOCKED)`;
+    }
+
+    static async getTimetable(session: Session, params: string): Promise<string> {
+        return "TN - TIMETABLE DISPLAY (NOT YET IMPLEMENTED)";
+    }
+
     static moveUp(session: Session): string {
         if (!session.area.availabilityResults || session.area.availabilityResults.length === 0) {
             return "NO AVAILABILITY TO SCROLL";
@@ -91,9 +130,8 @@ export class AvailabilityService {
 
         const newStart = session.area.paging.currentStart - session.area.paging.pageSize;
         if (newStart < 0) {
-            // If already at 0, maybe "TOP OF LIST"
-            if (session.area.paging.currentStart === 0) return "TOP OF LIST";
             session.area.paging.currentStart = 0;
+            return "TOP OF LIST";
         } else {
             session.area.paging.currentStart = newStart;
         }

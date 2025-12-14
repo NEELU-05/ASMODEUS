@@ -108,6 +108,25 @@ The system must **block** `ET`/`ER` commands unless the following elements exist
 4.  **Renderer**: Dedicated text formatter to ensure exact character alignment with real Amadeus screens.
 
 ---
+
+## 9. Phase 7: Real-World Integrations (Future)
+*Goal: Bridge the gap between simulation and reality.*
+
+### Features:
+- **Airline API Integration**: Connect to sandbox APIs (e.g., Amadeus for Developers) for real schedules.
+- **Payment Gateway**: Simulate credit card processing/approval codes.
+- **Notifications**:
+    - **Email**: Send generic HTML confirmations.
+    - **SMS**: Mock SMS alerts for ticketing.
+
+### Implementation Status:
+- [ ] Real airline API integration (sandbox)
+- [ ] Live flight data
+- [ ] Real fare data
+- [ ] Payment gateway simulation
+- [ ] Email confirmations
+- [ ] SMS notifications
+
 ---
 **Verdict**: **Phases 3 and 4 are COMPLETE.** The validation and ticketing logic now matches real-world behavior.
 **Next Priority**: **Phase 1 (Navigation)** to add `HE` (Help), `AC`, and `MN/MY`.
