@@ -82,6 +82,8 @@ export interface FlightSegment {
     dest: string;
     status: string; // HK1, HL1
     seats: number;
+    depTime?: string;
+    arrTime?: string;
 }
 
 export interface Passenger {

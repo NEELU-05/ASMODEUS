@@ -220,13 +220,26 @@ export class CommandProcessor {
             origin: flight.origin,
             dest: flight.destination,
             status: `HK${numSeats}`,
-            seats: numSeats
+            seats: numSeats,
+            depTime: flight.depTime,
+            arrTime: flight.arrTime
         };
 
         session.area.segments.push(segment);
 
-        // Format response
-        return `${segment.line}  ${segment.airline} ${segment.flightNumber} ${segment.class} ${segment.date} ${segment.origin}${segment.dest} ${segment.status}`;
+        // Format Segment Response (Fixed Width)
+        // 1  AI 631 Y 12JAN DELBOM HK1  0850 1050 /E
+        const lineStr = segment.line.toString().padEnd(3);
+        const al = segment.airline.padEnd(3);
+        const fn = segment.flightNumber.padEnd(4);
+        const cls = segment.class.padEnd(2);
+        const dt = segment.date.padEnd(6);
+        const od = (segment.origin + segment.dest).padEnd(7);
+        const st = segment.status.padEnd(5);
+        const t1 = segment.depTime ? segment.depTime.replace(':', '').padEnd(5) : '     ';
+        const t2 = segment.arrTime ? segment.arrTime.replace(':', '').padEnd(5) : '     ';
+
+        return `${lineStr}${al}${fn}${cls}${dt}${od}${st}${t1}${t2}/E`;
     }
 
     // ===== NEED =====
@@ -410,7 +423,18 @@ export class CommandProcessor {
 
         // Segments
         session.area.segments.forEach(seg => {
-            output += `${seg.line}  ${seg.airline} ${seg.flightNumber} ${seg.class} ${seg.date} ${seg.origin}${seg.dest} ${seg.status}\n`;
+            // 1  AI 631 Y 12JAN DELBOM HK1  0850 1050 /E
+            const lineStr = seg.line.toString().padEnd(3);
+            const al = seg.airline.padEnd(3);
+            const fn = seg.flightNumber.padEnd(4);
+            const cls = seg.class.padEnd(2);
+            const dt = seg.date.padEnd(6);
+            const od = (seg.origin + seg.dest).padEnd(7);
+            const st = seg.status.padEnd(5);
+            const t1 = seg.depTime ? seg.depTime.replace(':', '').padEnd(5) : '     ';
+            const t2 = seg.arrTime ? seg.arrTime.replace(':', '').padEnd(5) : '     ';
+
+            output += `${lineStr}${al}${fn}${cls}${dt}${od}${st}${t1}${t2}/E\n`;
         });
         output += "\n";
 
@@ -486,7 +510,23 @@ export class CommandProcessor {
             let output = `PNR RETRIEVED: ${pnr}\n\n`;
             dbPnr.passengers.forEach(pax => output += `${pax.line}.${pax.lastName}/${pax.firstName} ${pax.type}\n`);
             output += "\n";
-            dbPnr.segments.forEach(seg => output += `${seg.line}  ${seg.airline} ${seg.flightNumber} ${seg.class} ${seg.date} ${seg.origin}${seg.dest} ${seg.status}\n`);
+            dbPnr.segments.forEach(seg => {
+                // 1  AI 631 Y 12JAN DELBOM HK1  0850 1050 /E
+                // Note: DB retrieved segments might lack depTime/arrTime if not originally saved, handling gracefully
+                const lineStr = seg.line.toString().padEnd(3);
+                const al = seg.airline.padEnd(3);
+                const fn = seg.flightNumber.padEnd(4);
+                const cls = seg.class.padEnd(2);
+                const dt = seg.date.padEnd(6);
+                const od = (seg.origin + seg.dest).padEnd(7);
+                const st = seg.status.padEnd(5);
+                // Types for DB PNR might be loose, let's type cast or check if exist
+                const s = seg as any;
+                const t1 = s.depTime ? s.depTime.replace(':', '').padEnd(5) : '     ';
+                const t2 = s.arrTime ? s.arrTime.replace(':', '').padEnd(5) : '     ';
+
+                output += `${lineStr}${al}${fn}${cls}${dt}${od}${st}${t1}${t2}/E\n`;
+            });
             output += "\n";
 
             // Assume no contacts saved in DB yet (Task didn't specify Contact persistence, but ideally yes. Skip for now to stick to scope)
