@@ -14,7 +14,7 @@ The ASMODEUS system is **100% complete and functional** for training purposes. T
 **Effort:** Medium
 
 - [ ] Import 55k+ airports from CSV to MySQL
-- [ ] Persistent PNR storage
+- [x] Persistent PNR storage
 - [ ] Ticket history tracking
 - [ ] User session persistence
 - [ ] Analytics and reporting
@@ -472,9 +472,10 @@ We welcome:
 - ✅ Full booking workflow
 - ✅ Render.com deployment ready
 
-### v1.1 (Planned) - Q1 2025
-- Database integration
-- Advanced availability
+### v1.1 (In Progress) - December 2024
+- [x] Persistent PNR storage
+- [ ] Import airports from CSV
+- [ ] Advanced availability features
 - Enhanced PNR features
 
 ### v1.2 (Planned) - Q2 2025
