@@ -155,38 +155,41 @@ export class AvailabilityService {
         if (pageFlights.length === 0) return "NO FLIGHTS ON THIS PAGE";
 
         pageFlights.forEach((flt, index) => {
-            // Absolute index for line number (1, 2, 3...) regardless of page?
-            // Amadeus actually renumbers or keeps absolute?
-            // Usually absolute: 1, 2, 3...
-            const lineNum = (start + index + 1).toString().padStart(2);
+            const lineNum = (start + index + 1).toString().padStart(2); // Col 1-2
+            const al = flt.airline.padEnd(3); // Col 4-6
+            const fn = flt.flightNumber.padEnd(5); // Col 7-11
 
-            const al = flt.airline;
-            const fn = flt.flightNumber.padEnd(4);
-
-            // Format classes
+            // Classes: Fixed width 22 chars (J9 C9 D9 I9 Y9 B9 H9)
+            // Need exactly 2 chars per class + 1 space = 3 chars/item * 7 items = 21 + 1 = 22
+            // Actually Amadeus uses variable spacing depending on view, but let's fix to grid.
             const classList = this.getClassList(flt.classes);
-            const row1Classes = classList.slice(0, 7).join(" ");
-            const row2Classes = classList.slice(7).join(" ");
+            const row1Classes = classList.slice(0, 7).map(c => c.padEnd(2)).join(" ").padEnd(23);
+            const row2Classes = classList.slice(7).map(c => c.padEnd(2)).join(" ");
 
-            // Route
+            // Route: /DEL DOH or /DEL DXB LHR
+            // Fixed width ??
             let routeStr = `/${flt.origin}`;
             if (flt.via) {
                 routeStr += ` ${flt.via}`;
             }
             routeStr += ` ${flt.destination}`;
+            routeStr = routeStr.padEnd(13); // Fixed width 13
 
             const stopsStr = flt.stops.toString();
-            const depTime = flt.depTime.padEnd(6);
-            const arrTime = flt.arrTime;
-            const dayOffsetStr = flt.dayOffset > 0 ? `+${flt.dayOffset}` : '';
+            const depTime = flt.depTime.replace(':', '').padEnd(4); // 0850
+            const arrTime = flt.arrTime.replace(':', '').padEnd(4); // 1050
+            const dayOffsetStr = flt.dayOffset > 0 ? `+${flt.dayOffset}` : '  ';
             const equipStr = `E0/${flt.equipment}`;
-            const elapsedStr = flt.elapsedTime;
+            const elapsedStr = flt.elapsedTime.replace(':', '');
 
-            // Line 1
-            const line1 = `${lineNum}  ${al} ${fn} ${row1Classes.padEnd(22)} ${routeStr.padEnd(12)} ${stopsStr}  ${depTime} ${arrTime}${dayOffsetStr.padStart(3)}  ${equipStr}  ${elapsedStr}`;
+            // LINE 1 CONSTRUCTION (STRICT COLUMN POSITIONS)
+            // 123456789012345678901234567890123456789012345678901234567890
+            // 1  AI 123  J9 C9 I9 Y9 M9  /DEL DOH   0  0800 1000      E0/320       200
+
+            const line1 = `${lineNum} ${al}${fn} ${row1Classes} ${routeStr} ${stopsStr}  ${depTime} ${arrTime}${dayOffsetStr} ${equipStr} ${elapsedStr}`;
             body += line1 + "\n";
 
-            // Line 2
+            // Line 2 (Overflow classes)
             if (row2Classes) {
                 const indent = " ".repeat(12);
                 body += `${indent}${row2Classes}\n`;
