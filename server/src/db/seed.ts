@@ -1,33 +1,13 @@
-import { pool } from './mysql';
+import { pool } from './mysql.js';
 
-export async function seedData() {
-    console.log('🌱 Seeding Dummy Data...');
+async function seedData() {
+    console.log('🌱 Seeding Database...');
     const conn = await pool.getConnection();
 
     try {
-        // Clear old data (optional, for reset)
-        // await conn.query('DELETE FROM inventory');
-        // await conn.query('DELETE FROM flights');
-        // await conn.query('DELETE FROM airports');
+        // Create airlines table
+        await conn.execute(`CREATE TABLE IF NOT EXISTS airlines (code CHAR(2) PRIMARY KEY, name VARCHAR(50))`);
 
-        // Airports
-        const airports = [
-            ['DEL', 'Delhi', 'Indira Gandhi International'],
-            ['BOM', 'Mumbai', 'Chhatrapati Shivaji Maharaj'],
-            ['DXB', 'Dubai', 'Dubai International'],
-            ['DOH', 'Doha', 'Hamad International'],
-            ['JFK', 'New York', 'John F. Kennedy'],
-            ['LHR', 'London', 'Heathrow'],
-            ['ATH', 'Athens', 'Eleftherios Venizelos'],
-            ['LGW', 'London', 'Gatwick']
-        ];
-
-        for (const apt of airports) {
-            await conn.query('INSERT IGNORE INTO airports (code, city, name) VALUES (?, ?, ?)', apt);
-        }
-
-        // Airlines Table Creation
-        await conn.query(`CREATE TABLE IF NOT EXISTS airlines (code CHAR(2) PRIMARY KEY, name VARCHAR(50))`);
         const airlines = [
             ['AI', 'Air India'], ['IX', 'Air India Express'], ['UK', 'Vistara'], ['6E', 'IndiGo'],
             ['SG', 'SpiceJet'], ['G8', 'Go First'], ['QR', 'Qatar Airways'], ['EK', 'Emirates'],
@@ -39,69 +19,69 @@ export async function seedData() {
             ['AZ', 'ITA Airways'], ['LX', 'SWISS'], ['MH', 'Malaysia Airlines'], ['TG', 'Thai Airways'],
             ['GA', 'Garuda Indonesia'], ['KE', 'Korean Air'], ['OZ', 'Asiana Airlines'], ['HU', 'Hainan Airlines'],
             ['MU', 'China Eastern'], ['CA', 'Air China'], ['CZ', 'China Southern'], ['ET', 'Ethiopian Airlines'],
-            ['AT', 'Royal Air Maroc'], ['RJ', 'Royal Jordanian'], ['A3', 'Aegean Airlines'], ['OA', 'Olympic Air'],
-            ['U2', 'EasyJet']
+            ['AT', 'Royal Air Maroc'], ['RJ', 'Royal Jordanian'], ['A3', 'Aegean Airlines'], ['OA', 'Olympic Air']
         ];
 
         for (const al of airlines) {
-            await conn.query('INSERT IGNORE INTO airlines (code, name) VALUES (?, ?)', al);
+            await conn.execute('INSERT IGNORE INTO airlines (code, name) VALUES (?, ?)', al);
         }
 
-        // Flights
-        // DEL -> DXB (AI 995, EK 511)
+        console.log(`✅ Seeded ${airlines.length} airlines`);
+
+        // Sample airports
+        await conn.execute(`CREATE TABLE IF NOT EXISTS airports (code CHAR(3) PRIMARY KEY, city VARCHAR(50), name VARCHAR(100))`);
+
+        const airports = [
+            ['DEL', 'Delhi', 'Indira Gandhi International'],
+            ['BOM', 'Mumbai', 'Chhatrapati Shivaji'],
+            ['BLR', 'Bangalore', 'Kempegowda International'],
+            ['MAA', 'Chennai', 'Chennai International'],
+            ['DOH', 'Doha', 'Hamad International'],
+            ['DXB', 'Dubai', 'Dubai International'],
+            ['LHR', 'London', 'Heathrow'],
+            ['JFK', 'New York', 'John F Kennedy'],
+            ['SIN', 'Singapore', 'Changi'],
+            ['ATH', 'Athens', 'Athens International']
+        ];
+
+        for (const ap of airports) {
+            await conn.execute('INSERT IGNORE INTO airports (code, city, name) VALUES (?, ?, ?)', ap);
+        }
+
+        console.log(`✅ Seeded ${airports.length} airports`);
+
+        // Sample flights
+        await conn.execute(`CREATE TABLE IF NOT EXISTS flights (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            airline CHAR(2),
+            flight_number VARCHAR(10),
+            origin CHAR(3),
+            destination CHAR(3),
+            dep_time CHAR(4),
+            arr_time CHAR(4),
+            days CHAR(7)
+        )`);
+
         const flights = [
-            ['AI', '995', 'DEL', 'DXB', '2000', '2200', '1234567'],
-            ['EK', '511', 'DEL', 'DXB', '1000', '1230', '1234567'],
-            ['QR', '579', 'DEL', 'DOH', '0400', '0600', '1234567'],
-            ['UK', '999', 'BOM', 'LHR', '1400', '1900', '1357'],
-            // ATH -> LON (LHR/LGW) matches screenshot
-            ['BA', '631', 'ATH', 'LHR', '0815', '1010', '1234567'],
-            ['A3', '602', 'ATH', 'LHR', '0850', '1050', '1234567'],
-            ['OA', '259', 'ATH', 'LHR', '0915', '1115', '1234567'],
-            ['BA', '639', 'ATH', 'LHR', '1340', '1535', '1234567'],
-            ['U2', '5086', 'ATH', 'LGW', '1440', '1625', '1234567']
+            ['AI', '631', 'DEL', 'BOM', '0850', '1050', '1234567'],
+            ['6E', '234', 'DEL', 'BOM', '1200', '1400', '1234567'],
+            ['UK', '851', 'DEL', 'BLR', '0900', '1130', '1234567'],
+            ['QR', '570', 'DEL', 'DOH', '0200', '0430', '1234567'],
+            ['EK', '512', 'DEL', 'DXB', '0300', '0530', '1234567'],
+            ['BA', '142', 'DEL', 'LHR', '1400', '1830', '1234567']
         ];
 
         for (const flt of flights) {
-            await conn.query('INSERT IGNORE INTO flights (airline, flight_number, origin, destination, dep_time, arr_time, days) VALUES (?, ?, ?, ?, ?, ?, ?)', flt);
+            await conn.execute('INSERT IGNORE INTO flights (airline, flight_number, origin, destination, dep_time, arr_time, days) VALUES (?, ?, ?, ?, ?, ?, ?)', flt);
         }
 
-        // Parameters for inventory generation: Next 30 days
-        // We need to fetch flight IDs first
-        const [rows]: any = await conn.query('SELECT id, days FROM flights');
-
-        // Simple naive Loop for next 30 days
-        const today = new Date();
-        for (let i = 0; i < 30; i++) {
-            const date = new Date(today);
-            date.setDate(today.getDate() + i);
-            const dayOfWeek = date.getDay() === 0 ? 7 : date.getDay(); // JS Sunday is 0, we want 7? Or adjust string. 
-            // Our string is '1234567' where 1=Mon? Or 1=Sun? Let's assume 1=Mon.
-            // JS: 1=Mon, ..., 6=Sat, 0=Sun. 
-            // Conversion: 
-            const jsDay = date.getDay();
-            const dbDay = jsDay === 0 ? 7 : jsDay;
-
-            const isoDate = date.toISOString().split('T')[0];
-
-            for (const flight of rows) {
-                if (flight.days.includes(String(dbDay))) {
-                    // Create Inventory for Y, J classes
-                    // Check if exists
-                    const [check]: any = await conn.query('SELECT id FROM inventory WHERE flight_id=? AND date=?', [flight.id, isoDate]);
-                    if (check.length === 0) {
-                        await conn.query('INSERT INTO inventory (flight_id, date, class, seats_available) VALUES (?, ?, "Y", 100)', [flight.id, isoDate]);
-                        await conn.query('INSERT INTO inventory (flight_id, date, class, seats_available) VALUES (?, ?, "J", 10)', [flight.id, isoDate]); // Small J class for scenarios
-                    }
-                }
-            }
-        }
-
-        console.log('✅ Seed Data Inserted.');
+        console.log(`✅ Seeded ${flights.length} flights`);
 
     } catch (err) {
-        console.error('❌ Seeding failed:', err);
+        console.error('❌ Seed error:', err);
     } finally {
         conn.release();
     }
 }
+
+seedData().then(() => process.exit());

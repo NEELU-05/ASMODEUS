@@ -10,7 +10,13 @@
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
         "resolveJsonModule": true,
-        "allowSyntheticDefaultImports": true
+        "allowSyntheticDefaultImports": true,
+        "types": [
+            "node"
+        ],
+        "lib": [
+            "ES2020"
+        ]
     },
     "include": [
         "src/**/*"
