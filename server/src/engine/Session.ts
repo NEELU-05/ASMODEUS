@@ -14,6 +14,7 @@ export class Session {
         osi: string[];
         ssrs: string[];
         seats: string[];
+        ticketing: string[];
         receivedFrom: string;
         currentPnr: string | null;
         pricedFare: number | null;
@@ -35,6 +36,7 @@ export class Session {
             osi: [],
             ssrs: [],
             seats: [],
+            ticketing: [],
             receivedFrom: '',
             currentPnr: null,
             pricedFare: null,
@@ -63,6 +65,7 @@ export class Session {
             osi: [],
             ssrs: [],
             seats: [],
+            ticketing: [],
             receivedFrom: '',
             currentPnr: null,
             pricedFare: null,

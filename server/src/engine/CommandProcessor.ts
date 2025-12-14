@@ -63,8 +63,8 @@ export class CommandProcessor {
                 case CommandType.SSR:
                     return this.handleSSR(session, intent.args);
 
-                case CommandType.TICKET_TIME_LIMIT:
-                    return this.handleTicketTimeLimit(session, intent.args);
+                case CommandType.TICKETING_ELEMENT:
+                    return this.handleTicketingElement(session, intent.args);
 
                 case CommandType.SEAT_REQUEST:
                     return this.handleSeatRequest(session, intent.args);
@@ -283,9 +283,12 @@ export class CommandProcessor {
         return `SR ${args.ssrCode} - ADDED`;
     }
 
-    // ===== TICKET TIME LIMIT =====
-    private static handleTicketTimeLimit(session: Session, args: any): string {
-        return `TKTL ${args.limit} - SET`;
+    // ===== TICKETING ELEMENT =====
+    private static handleTicketingElement(session: Session, args: any): string {
+        const element = args.element;
+        // Basic validation: TK OK or TK TL
+        session.area.ticketing.push(element);
+        return `TK ${element} - ADDED`;
     }
 
     // ===== PRICE =====
@@ -318,6 +321,11 @@ export class CommandProcessor {
     private static async handleTicket(session: Session, args: any): Promise<string> {
         if (!session.area.currentPnr) {
             return "NO PNR IN CONTEXT";
+        }
+
+        // Check if Ticket Element exists (TK OK)
+        if (session.area.ticketing.length === 0) {
+            return "NO TICKETING ARRANGEMENT";
         }
 
         if (!session.area.pricedFare) {
@@ -360,13 +368,11 @@ export class CommandProcessor {
 
     // ===== END & RETRIEVE =====
     private static async handleEndRetrieve(session: Session): Promise<string> {
-        if (session.area.segments.length === 0) {
-            return "NO ITIN";
-        }
-
-        if (session.area.passengers.length === 0) {
-            return "NEED NAME FIELD";
-        }
+        // Mandatory Elements Check
+        if (session.area.segments.length === 0) return "NO ITIN";
+        if (session.area.passengers.length === 0) return "NEED NAME FIELD";
+        if (session.area.contacts.length === 0) return "NEED AP ELEMENT";
+        if (session.area.ticketing.length === 0) return "NEED TK ELEMENT";
 
         // Generate PNR locator
         const locator = this.generatePNRLocator();
@@ -416,13 +422,10 @@ export class CommandProcessor {
 
     // ===== END TRANSACTION =====
     private static async handleEndTransaction(session: Session): Promise<string> {
-        if (session.area.segments.length === 0) {
-            return "NO ITIN";
-        }
-
-        if (session.area.passengers.length === 0) {
-            return "NEED NAME FIELD";
-        }
+        if (session.area.segments.length === 0) return "NO ITIN";
+        if (session.area.passengers.length === 0) return "NEED NAME FIELD";
+        if (session.area.contacts.length === 0) return "NEED AP ELEMENT";
+        if (session.area.ticketing.length === 0) return "NEED TK ELEMENT";
 
         const locator = this.generatePNRLocator();
         session.area.currentPnr = locator;

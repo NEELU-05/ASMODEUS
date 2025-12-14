@@ -166,12 +166,12 @@ export class CommandParser {
             };
         }
 
-        // Ticket Time Limit: TKTL/20JAN
-        if (cmd.match(/^TKTL/)) {
+        // Ticketing Element: TKOK or TKTL/20JAN
+        if (cmd.match(/^TK/)) {
             return {
-                type: CommandType.TICKET_TIME_LIMIT,
+                type: CommandType.TICKETING_ELEMENT,
                 raw: input,
-                args: { limit: cmd.substring(5) }
+                args: { element: cmd.substring(2) }
             };
         }
 
