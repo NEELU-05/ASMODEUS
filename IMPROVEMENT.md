@@ -129,14 +129,14 @@ The ASMODEUS system is **100% complete and functional** for training purposes. T
 **Priority:** Medium
 **Effort:** Medium
 
-- [x] Command autocomplete (Restored)
-- [ ] Syntax highlighting (Removed as per user request)
+- [ ] Command autocomplete
+- [ ] Syntax highlighting
 - [x] Error highlighting
-- [x] Command history navigation (Up/Down Arrows)
-- [ ] Command history search (Ctrl+R)
-- [x] Keyboard shortcuts (Arrow keys)
-- [x] Copy/paste PNR data (Copy All button)
-- [x] Export PNR to PDF (Print button)
+- [ ] Command history navigation (Removed as per user request)
+- [ ] Command history search
+- [ ] Keyboard shortcuts
+- [ ] Copy/paste PNR data
+- [ ] Export PNR to PDF
 
 **Benefits:**
 - Better user experience
