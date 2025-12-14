@@ -9,8 +9,8 @@ Amadeus uses fixed-column formatting, not free text.
 
 **Rule to implement in the Renderer (not logic):**
 Output is rendered in fixed-width columns.
-Many fields visually appear as: `AAAAA BBBBB`
-(example: `DEL DOH`, `12JAN 2025`, `LH893 3`)
+Many fields visually appear as: `AAAAA BBBBB` ONLY PHONE NUMBER
+(example: "APDEL 98089 90999")
 
 ⚠️ **Important clarification:**
 -   This is **NOT** a parsing rule
@@ -61,7 +61,7 @@ Missing navigation depth, status realism, and training validation logic.
 
 ---
 
-## 3. Phase 2: Status Codes & Airline Logic (CRITICAL)
+## 3. Phase 2: Status Codes & Airline Logic (CRITICAL) ✅ COMPLETE
 *Goal: Simulate real airline host responses.*
 
 **Required Status Transitions:**
@@ -182,5 +182,5 @@ Scenarios operate **above** CRS logic, not inside it.
 -   Real payments
 
 ---
-**Verdict**: Phases 1, 3, and 4 are largely complete.
-**Next Priority**: **Renderer (Phase 0)** and **Status Codes (Phase 2)**.
+**Verdict**: Phases 0, 1, 2, 3, 4, 6, 7, 8 are largely complete.
+**Next Priority**: **Phase 5 (Advanced Agent Operations - Queues)**.
