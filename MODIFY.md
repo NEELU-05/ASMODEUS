@@ -1,132 +1,186 @@
 # Amadeus System Improvement Plan & Gap Analysis
 
-Based on the **Official Amadeus Training Manual (8689466.pdf)** and a review of the current codebase, the following gaps and required improvements have been identified to reach training parity.
+(Aligned with Official Amadeus Training Manual – 8689466.pdf)
+
+## 0. Formatting & Host Display Rule (NEW – FOUNDATIONAL)
+**Fixed-Width Host Formatting Rule**
+
+Amadeus uses fixed-column formatting, not free text.
+
+**Rule to implement in the Renderer (not logic):**
+Output is rendered in fixed-width columns.
+Many fields visually appear as: `AAAAA BBBBB`
+(example: `DEL DOH`, `12JAN 2025`, `LH893 3`)
+
+⚠️ **Important clarification:**
+-   This is **NOT** a parsing rule
+-   This is a **DISPLAY / RENDERING** rule
+-   Logic remains token-based
+-   Renderer pads/truncates to fixed widths
+
+**Required Changes:**
+-   Add a **Column Formatter** layer:
+    -   Pads fields to fixed width
+    -   Aligns time, class buckets, equipment
+-   Parser must ignore spacing, Renderer must enforce spacing
+
+✅ **This makes screens visually identical to real Amadeus.**
+
+---
 
 ## 1. Command Coverage Gap Analysis
 
 **Current Capabilities:**
-- Basic Navigation (`AN`, `AD`)
-- Booking (`SS`, `NM`, `AP`)
-- PNR Operations (`ER`, `ET`, `RT`, `SP`)
-- Pricing & Ticketing (`FXP`, `TTP`)
+-   **Availability**: `AN`, `AD`
+-   **Booking**: `SS`, `NM`, `AP`
+-   **PNR Control**: `ER`, `ET`, `RT`, `SP`
+-   **Pricing & Ticketing**: `FXP`, `TTP`
 
-**Missing Command Families:**
-To achieve full realism, the system must expand to include standard Amadeus navigation, strict status code logic, and comprehensive PNR validation.
-
----
-
-## 2. Phase 1: Core Navigation & Display (High Priority)
-*Goal: Move from "scripted" interactions to exploratory navigation.*
-
-### Required Commands:
-- **HE / HE <cmd>**: Context-sensitive Help system (Critical for learners).
-- **AC / ACR**: Availability Change (e.g., `AC12JAN` to change date without retyping full AN).
-- **MN / MY**: Move Next/Previous Day (essential for finding flights).
-- **MP / MT / MB**: Move Top/Bottom (Page navigation).
-- **SN / SD**: Schedule Display (Frequency based, not availability based).
-- **TN**: Timetable display.
+**Gap:**
+Missing navigation depth, status realism, and training validation logic.
 
 ---
 
-## 3. Phase 2: Status Codes & Airline Logic (Critical Realism)
-*Goal: Simulate realistic airline responses and inventory states.*
+## 2. Phase 1: Core Navigation & Display (HIGH PRIORITY) ✅ PARTIALLY COMPLETE
+*Goal: Move from scripted flows to real exploratory navigation, exactly like live Amadeus.*
 
-**Current State**: Defaults to `HK` (Holding Confirmed).
-**Required State**: Implement specific status transitions:
-- **DK → HK**: Waitlist to Confirmed.
-- **NN → HK/HL**: Need -> Confirmed/Waitlist.
-- **LL / KL / KK**: Waitlist confirmations.
-- **HX / UN / UC**: Cancellation statuses (Have Cancelled, Unable, Unable/Closed).
+**Commands:**
+| Command | Function | Status |
+| :--- | :--- | :--- |
+| **HE / HE <CMD>** | Context-sensitive help | ✅ Implemented |
+| **AC / ACR** | Change availability parameters | ✅ Implemented |
+| **MN / MY** | Move next / previous day | ✅ Implemented |
+| **MP / MT / MB** | Page navigation | ✅ Implemented |
+| **SN / SD** | Schedule display | Pending |
+| **TN** | Timetable | Pending |
 
-**Notifications**:
-- Support `ETK` (Electronic Ticket) and `ERK` flags.
+**Display Requirement:**
+-   All outputs must follow **Fixed-width layout**
+-   5–8 character columns
+-   Visual spacing preserved by renderer
 
 ---
 
-## 4. Phase 3: PNR Completeness Engine
-*Goal: Enforce mandatory elements before PNR creation.*
+## 3. Phase 2: Status Codes & Airline Logic (CRITICAL)
+*Goal: Simulate real airline host responses.*
 
-**Validation Rules**:
-The system must **block** `ET`/`ER` commands unless the following elements exist:
+**Required Status Transitions:**
+| From | To |
+| :--- | :--- |
+| **DK** | **HK** |
+| **NN** | **HK / HL** |
+| **LL** | **HK** |
+| **KL** | **HK** |
+| **HX** | Cancelled |
+| **UN** | Unable |
+| **UC** | Unable/Closed |
+
+**Flags:**
+-   `ETK` – Electronic Ticket
+-   `ERK` – End & Redisplay with status
+
+Status logic must be decided by a separate **Airline Simulator** module.
+
+---
+
+## 4. Phase 3: PNR Completeness Engine ✅ COMPLETE
+
+**Mandatory Elements Before ER / ET:**
 1.  **Itinerary** (`SS`)
 2.  **Name** (`NM`)
-3.  **Contact** (`AP`) -> Error: `NEED AP ELEMENT`
-4.  **Ticketing** (`TK`) -> Error: `NEED TK ELEMENT`
+3.  **Contact** (`AP`)
+4.  **Ticketing Arrangement** (`TK`)
 
-✅ **Status: IMPLEMENTED**
-- Mandatory element validation added to `CommandProcessor`.
-- `ER`/`ET` properly blocked if elements missing.
+**Errors Implemented:**
+-   `NEED NAME FIELD`
+-   `NEED AP ELEMENT`
+-   `NEED TK ELEMENT`
+
+✅ **Already implemented correctly to match Print-to-PNR workflow.**
 
 ---
 
-## 5. Phase 4: Ticketing Logic Correction
-*Goal: Fix the confusion between PNR elements and Ticketing actions.*
+## 5. Phase 4: Ticketing Logic Correction ✅ COMPLETE
 
-**Critical Distinction**:
-- **TK OK**: This is a **PNR Element** (Ticketing Arrangement), NOT a command to issue a ticket. It implies "Ticket OK" or "Ticket Number entered".
-- **TTP**: This is the **Action Command** (Ticket Transaction Print) to actually issue the ticket.
+**Correct Distinction (CRITICAL):**
+| Item | Type |
+| :--- | :--- |
+| **TK OK** | **PNR Element** |
+| **TK TL12JAN** | **PNR Element** |
+| **TTP** | **Action Command** |
 
-**Required Changes**:
-- **Parser**: Stop treating `TKOK` as `TICKETING`. Treat it as a data entry command (store in PNR).
-- **Processor**: `ER` should fail if a `TK` element is missing.
-- **Logic**: `TTP` should only work if the PNR is Priced (`FXP`) and Saved.
+**Enforced Rules:**
+-   `TK` stored as PNR data
+-   `ER` blocked without `TK`
+-   `TTP` allowed only if:
+    -   PNR saved
+    -   PNR priced (`FXP`)
 
-✅ **Status: IMPLEMENTED**
-- `TK` commands now stored as `TICKETING_ELEMENT`.
-- `TTP` validation logic strictly enforces availability of `ticket` and `price`.
+✅ **Matches real Amadeus behavior.**
 
 ---
 
 ## 6. Phase 5: Advanced Agent Operations
-*Goal: Support complex training scenarios.*
+*Goal: Enable exam-grade and airline-training scenarios.*
 
-### To Implement:
-- **Cancel/Rebook (`XE` / `SB`)**: `SB` (Segment Book) implies changing class/date.
-- **Group Booking (`NG` / `SG`)**: Handling blocking of seats for names.
-- **SSR & OSI (`SR` / `OS`)**: Expanded support for DOCS/APIS (Mandatory for international).
-- **Queue System (`QS` / `QD` / `QI`)**: Essential for workflow training (simulating inbound messages).
-- **History (`RH` / `RHA`)**: Audit trail of PNR changes.
+**To Implement:**
+-   **XE / SB**: Cancel & rebook segments
+-   **NG / SG**: Group bookings
+-   **SR / OS**: SSR & OSI (DOCS/APIS mandatory for international)
+-   **QS / QD / QI**: Queue handling
+-   **RH / RHA**: History & audit trail
+
+All outputs must respect **fixed-width formatting**.
 
 ---
 
 ## 7. Phase 6: Scenario Engine Integration
-*Goal: Turn the sandbox into a structured training lab.*
+*Goal: Turn system into a structured training lab.*
 
-**Logic**:
-- Inject scenarios that *force* errors (e.g., "Force Price Check" where `TTP` fails until `FXP` is run).
-- **Auto-Queue**: Scenario where PNR is automatically placed on Queue 50 for the student to find.
-- **Date Advancement**: Scenarios that simulate time passing to trigger `TK TL` (Ticketing Time Limit) expiry.
+**Capabilities:**
+-   **Forced errors** (e.g., TTP before FXP)
+-   **Auto-queue insertion**
+-   **Time simulation**:
+    -   Trigger `TK TL` expiry
+    -   Queue on expiry
+
+Scenarios operate **above** CRS logic, not inside it.
 
 ---
 
 ## 8. Architectural Improvements
-*Goal: Separation of concerns.*
+**Required Separation:**
 
-1.  **Parser**: Strict cryptic grammar (Grammar-based parser instead of Regex).
-2.  **State Machine**: Formal PNR lifecycle states (Created -> Priced -> Ticketed).
-3.  **Airline Simulator**: Separate module to decide if a seat request returns `HK`, `UC`, or `NO`.
-4.  **Renderer**: Dedicated text formatter to ensure exact character alignment with real Amadeus screens.
+1.  **Parser**:
+    -   Grammar-based
+    -   Token aware
+    -   Ignores spacing
 
----
+2.  **State Machine**:
+    -   PNR lifecycle: `CREATED` → `SAVED` → `PRICED` → `TICKETED`
 
-## 9. Phase 7: Real-World Integrations (Future)
-*Goal: Bridge the gap between simulation and reality.*
+3.  **Airline Simulator**:
+    -   Decides `HK` / `UC` / `UN`
 
-### Features:
-- **Airline API Integration**: Connect to sandbox APIs (e.g., Amadeus for Developers) for real schedules.
-- **Payment Gateway**: Simulate credit card processing/approval codes.
-- **Notifications**:
-    - **Email**: Send generic HTML confirmations.
-    - **SMS**: Mock SMS alerts for ticketing.
-
-### Implementation Status:
-- [ ] Real airline API integration (sandbox)
-- [ ] Live flight data
-- [ ] Real fare data
-- [ ] Payment gateway simulation
-- [ ] Email confirmations
-- [ ] SMS notifications
+4.  **Renderer (NEW, CRITICAL)**:
+    -   Enforces **Fixed-width columns**
+    -   5-letter spacing where applicable
+    -   Alignment identical to Amadeus screens
 
 ---
-**Verdict**: **Phases 3 and 4 are COMPLETE.** The validation and ticketing logic now matches real-world behavior.
-**Next Priority**: **Phase 1 (Navigation)** to add `HE` (Help), `AC`, and `MN/MY`.
+
+## 9. Phase 7: Real-World Integrations (Future – Optional)
+
+**Allowed / Recommended:**
+-   Sandbox schedule seeding
+-   Mock payment approval
+-   Training-only email/SMS
+
+**Not Recommended:**
+-   Real ATPCO fares
+-   Live booking APIs
+-   Real payments
+
+---
+**Verdict**: Phases 1, 3, and 4 are largely complete.
+**Next Priority**: **Renderer (Phase 0)** and **Status Codes (Phase 2)**.
