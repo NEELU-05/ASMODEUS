@@ -62,20 +62,21 @@ export const CrypticTerminal: React.FC = () => {
                         {line.content}
                     </div>
                 ))}
+
+                <form onSubmit={handleSubmit} className="flex gap-2 pt-2 relative">
+                    <span className="text-green-500 font-bold ml-1">&gt;</span>
+                    <input
+                        type="text"
+                        value={input}
+                        onChange={(e) => setInput(e.target.value.toUpperCase())}
+                        className="input-field relative z-10 bg-transparent flex-1"
+                        autoFocus
+                        placeholder="ENTER COMMAND"
+                    />
+                </form>
+
                 <div ref={bottomRef} />
             </div>
-
-            <form onSubmit={handleSubmit} className="flex gap-2 pt-2 relative">
-                <span className="text-green-500 font-bold ml-1">&gt;</span>
-                <input
-                    type="text"
-                    value={input}
-                    onChange={(e) => setInput(e.target.value.toUpperCase())}
-                    className="input-field relative z-10 bg-transparent flex-1"
-                    autoFocus
-                    placeholder="ENTER COMMAND"
-                />
-            </form>
         </div>
     );
 };
