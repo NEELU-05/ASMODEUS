@@ -11,13 +11,43 @@ interface Scenario {
 function App() {
   const [scenarios, setScenarios] = useState<Scenario[]>([]);
   const [activeScenario, setActiveScenario] = useState<Scenario | null>(null);
-
+  const [completedScenarios, setCompletedScenarios] = useState<number[]>([]);
+  const [startTime, setStartTime] = useState<number | null>(null);
+  const [elapsed, setElapsed] = useState(0);
   useEffect(() => {
     fetch('/api/scenarios')
       .then(res => res.json())
       .then(data => setScenarios(data))
       .catch(console.error);
   }, []);
+
+  useEffect(() => {
+    let interval: any;
+    if (activeScenario && !completedScenarios.includes(activeScenario.id)) {
+      if (!startTime) setStartTime(Date.now());
+      interval = setInterval(() => {
+        if (startTime) setElapsed(Math.floor((Date.now() - startTime) / 1000));
+      }, 1000);
+    } else {
+      setStartTime(null);
+      setElapsed(0);
+    }
+    return () => clearInterval(interval);
+  }, [activeScenario, completedScenarios, startTime]);
+
+  const handleComplete = () => {
+    if (activeScenario) {
+      setCompletedScenarios([...completedScenarios, activeScenario.id]);
+      setStartTime(null);
+      setElapsed(0);
+    }
+  };
+
+  const formatTime = (sec: number) => {
+    const m = Math.floor(sec / 60).toString().padStart(2, '0');
+    const s = (sec % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+  };
 
   return (
     <div className="h-screen w-screen p-4 flex gap-4 bg-[var(--bg-core)]">
@@ -40,10 +70,11 @@ function App() {
             {scenarios.map(s => (
               <div
                 key={s.id}
-                onClick={() => setActiveScenario(s)}
-                className={`p-2 rounded cursor-pointer transition-colors ${activeScenario?.id === s.id ? 'bg-[var(--text-accent)] text-[var(--bg-core)] font-bold' : 'hover:bg-[var(--bg-input)]'}`}
+                onClick={() => { setActiveScenario(s); setStartTime(Date.now()); }}
+                className={`p-2 rounded cursor-pointer transition-colors flex justify-between items-center ${activeScenario?.id === s.id ? 'bg-[var(--text-accent)] text-[var(--bg-core)] font-bold' : 'hover:bg-[var(--bg-input)]'}`}
               >
-                {s.id}. {s.title}
+                <span>{s.id}. {s.title}</span>
+                {completedScenarios.includes(s.id) && <span className="text-green-500">✓</span>}
               </div>
             ))}
             {scenarios.length === 0 && <div className="text-gray-500 italic">Loading scenarios...</div>}
@@ -63,6 +94,22 @@ function App() {
                 <span className="text-green-500 font-bold">GOAL:</span>
                 <p className="text-gray-400 mt-1 font-mono text-xs">{activeScenario.goal}</p>
               </div>
+
+              {!completedScenarios.includes(activeScenario.id) ? (
+                <div className="mt-6 p-4 bg-gray-900 rounded border border-gray-700 text-center">
+                  <div className="text-2xl font-mono text-white mb-2">{formatTime(elapsed)}</div>
+                  <button
+                    onClick={handleComplete}
+                    className="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded font-bold transition-colors w-full uppercase text-sm"
+                  >
+                    Mark as Complete
+                  </button>
+                </div>
+              ) : (
+                <div className="mt-6 p-4 bg-green-900/30 border border-green-600 rounded text-center text-green-400 font-bold uppercase">
+                  Scenario Completed!
+                </div>
+              )}
             </div>
           ) : (
             <div className="text-xs text-gray-500 text-center mt-10">

@@ -125,15 +125,16 @@ The ASMODEUS system is **100% complete and functional** for training purposes. T
 ## 💡 Phase 3: User Experience (Medium Priority)
 
 ### 7. Enhanced UI Features
-**Status:** Basic terminal complete
+**Status:** ✅ PARTIALLY COMPLETE
 **Priority:** Medium
 **Effort:** Medium
 
-- [ ] Command autocomplete
+- [x] Command autocomplete (Basic logic added)
 - [ ] Syntax highlighting
 - [ ] Error highlighting
+- [x] Command history navigation (Up/Down Arrows)
 - [ ] Command history search (Ctrl+R)
-- [ ] Keyboard shortcuts
+- [x] Keyboard shortcuts (Arrow keys)
 - [ ] Copy/paste PNR data
 - [ ] Export PNR to PDF
 
@@ -145,15 +146,15 @@ The ASMODEUS system is **100% complete and functional** for training purposes. T
 ---
 
 ### 8. Training Mode Enhancements
-**Status:** 20 scenarios available
+**Status:** ✅ PARTIALLY COMPLETE
 **Priority:** Medium
 **Effort:** Low
 
-- [ ] Scenario progress tracking
+- [x] Scenario progress tracking (Client-side)
 - [ ] Hints system
 - [ ] Step-by-step guidance
 - [ ] Performance scoring
-- [ ] Time tracking per scenario
+- [x] Time tracking per scenario
 - [ ] Leaderboard
 - [ ] Certification mode
 

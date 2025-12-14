@@ -7,9 +7,14 @@ interface TerminalLine {
 
 export const CrypticTerminal: React.FC = () => {
     const [history, setHistory] = useState<TerminalLine[]>([]);
+    const [commandHistory, setCommandHistory] = useState<string[]>([]);
+    const [historyIndex, setHistoryIndex] = useState(-1);
     const [input, setInput] = useState('');
+    const [suggestion, setSuggestion] = useState('');
     const [sessionId] = useState(() => 'SESS_' + Math.random().toString(36).substr(2, 9));
     const bottomRef = useRef<HTMLDivElement>(null);
+
+    const COMMANDS = ['AN', 'SS', 'NM', 'AP', 'TK', 'ER', 'ET', 'IG', 'RT', 'FXP', 'TTP', 'HE', 'MD', 'MU', 'RH', 'QS', 'QD', 'QE', 'AC', 'MN', 'MY'];
 
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -21,7 +26,10 @@ export const CrypticTerminal: React.FC = () => {
 
         const cmd = input.toUpperCase();
         setHistory(prev => [...prev, { type: 'input', content: `> ${cmd}` }]);
+        setCommandHistory(prev => [cmd, ...prev]);
+        setHistoryIndex(-1);
         setInput('');
+        setSuggestion('');
 
         try {
             // Use relative path - Vite proxy will handle dev, Express static will handle prod
@@ -64,13 +72,52 @@ export const CrypticTerminal: React.FC = () => {
                 <div ref={bottomRef} />
             </div>
 
-            <form onSubmit={handleSubmit} className="flex gap-2 border-t border-gray-700 pt-2">
+            <form onSubmit={handleSubmit} className="flex gap-2 border-t border-gray-700 pt-2 relative">
                 <span className="text-green-500 font-bold">&gt;</span>
+                {suggestion && input && suggestion.startsWith(input) && (
+                    <div className="absolute left-6 top-2 text-gray-600 pointer-events-none font-mono">
+                        {suggestion}
+                    </div>
+                )}
                 <input
                     type="text"
                     value={input}
-                    onChange={(e) => setInput(e.target.value.toUpperCase())}
-                    className="input-field"
+                    onChange={(e) => {
+                        const val = e.target.value.toUpperCase();
+                        setInput(val);
+                        // Simple Autocomplete Logic
+                        if (val.length >= 1) {
+                            const match = COMMANDS.find(c => c.startsWith(val));
+                            setSuggestion(match ? match : '');
+                        } else {
+                            setSuggestion('');
+                        }
+                    }}
+                    onKeyDown={(e) => {
+                        if (e.key === 'ArrowUp') {
+                            e.preventDefault();
+                            if (historyIndex < commandHistory.length - 1) {
+                                const newIndex = historyIndex + 1;
+                                setHistoryIndex(newIndex);
+                                setInput(commandHistory[newIndex]);
+                            }
+                        } else if (e.key === 'ArrowDown') {
+                            e.preventDefault();
+                            if (historyIndex > 0) {
+                                const newIndex = historyIndex - 1;
+                                setHistoryIndex(newIndex);
+                                setInput(commandHistory[newIndex]);
+                            } else if (historyIndex === 0) {
+                                setHistoryIndex(-1);
+                                setInput('');
+                            }
+                        } else if (e.key === 'Tab' && suggestion) {
+                            e.preventDefault();
+                            setInput(suggestion);
+                            setSuggestion('');
+                        }
+                    }}
+                    className="input-field relative z-10 bg-transparent"
                     autoFocus
                     placeholder="ENTER COMMAND"
                 />
