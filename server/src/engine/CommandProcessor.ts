@@ -6,6 +6,7 @@ import { pool } from '../db/mysql.js';
 import { PnrService } from './PnrService.js';
 import { TicketService } from './TicketService.js';
 import { LoggerService } from './LoggerService.js';
+import { ScreenRenderer } from './ScreenRenderer.js';
 
 export class CommandProcessor {
     static async process(session: Session, intent: CommandIntent): Promise<string> {
@@ -244,18 +245,8 @@ export class CommandProcessor {
 
         session.area.segments.push(segment);
 
-        // Format Segment Response (Fixed Width)
-        const lineStr = segment.line.toString().padEnd(3);
-        const al = segment.airline.padEnd(3);
-        const fn = segment.flightNumber.padEnd(4);
-        const cls = segment.class.padEnd(2);
-        const dt = segment.date.padEnd(6);
-        const od = (segment.origin + segment.dest).padEnd(7);
-        const st = segment.status.padEnd(5);
-        const t1 = segment.depTime ? segment.depTime.replace(':', '').padEnd(5) : '     ';
-        const t2 = segment.arrTime ? segment.arrTime.replace(':', '').padEnd(5) : '     ';
-
-        let response = `${lineStr}${al}${fn}${cls}${dt}${od}${st}${t1}${t2}/E`;
+        // Format Segment Response using ScreenRenderer
+        let response = ScreenRenderer.renderSegment(segment);
 
         if (status.startsWith('UC')) {
             response += `\nUNABLE TO CONFIRM - CLASS CLOSED`;
@@ -437,54 +428,15 @@ export class CommandProcessor {
         await PnrService.createPnr(locator, session.area.passengers, session.area.segments, session.area.remarks, session.area.osi);
         await PnrService.logHistory(locator, 'PNR CREATION', 'Initial PNR stored', session.agentId);
 
-        // Format PNR display
-        let output = `PNR CREATED: ${locator}\n\n`;
-
-        // Passengers
-        session.area.passengers.forEach(pax => {
-            output += `${pax.line}.${pax.lastName}/${pax.firstName} ${pax.type}\n`;
-        });
-        output += "\n";
-
-        // Segments
-        session.area.segments.forEach(seg => {
-            // 1  AI 631 Y 12JAN DELBOM HK1  0850 1050 /E
-            const lineStr = seg.line.toString().padEnd(3);
-            const al = seg.airline.padEnd(3);
-            const fn = seg.flightNumber.padEnd(4);
-            const cls = seg.class.padEnd(2);
-            const dt = seg.date.padEnd(6);
-            const od = (seg.origin + seg.dest).padEnd(7);
-            const st = seg.status.padEnd(5);
-            const t1 = seg.depTime ? seg.depTime.replace(':', '').padEnd(5) : '     ';
-            const t2 = seg.arrTime ? seg.arrTime.replace(':', '').padEnd(5) : '     ';
-
-            output += `${lineStr}${al}${fn}${cls}${dt}${od}${st}${t1}${t2}/E\n`;
-        });
-        output += "\n";
-
-        // Contacts
-        if (session.area.contacts.length > 0) {
-            session.area.contacts.forEach(contact => {
-                output += `AP ${contact}\n`;
-            });
-        }
-
-        // Remarks
-        if (session.area.remarks.length > 0) {
-            session.area.remarks.forEach(rm => {
-                output += `RM ${rm}\n`;
-            });
-        }
-
-        // OSI
-        if (session.area.osi.length > 0) {
-            session.area.osi.forEach(o => {
-                output += `OSI ${o}\n`;
-            });
-        }
-
-        return output;
+        return ScreenRenderer.renderPnr(
+            locator,
+            session.area.passengers,
+            session.area.segments,
+            session.area.contacts,
+            session.area.ticketing,
+            session.area.remarks,
+            session.area.osi
+        );
     }
 
     // ===== END TRANSACTION =====
@@ -534,39 +486,16 @@ export class CommandProcessor {
             session.area.remarks = dbPnr.remarks;
             session.area.osi = dbPnr.osi;
 
-            // Format Display
-            let output = `PNR RETRIEVED: ${pnr}\n\n`;
-            dbPnr.passengers.forEach(pax => output += `${pax.line}.${pax.lastName}/${pax.firstName} ${pax.type}\n`);
-            output += "\n";
-            dbPnr.segments.forEach(seg => {
-                // 1  AI 631 Y 12JAN DELBOM HK1  0850 1050 /E
-                // Note: DB retrieved segments might lack depTime/arrTime if not originally saved, handling gracefully
-                const lineStr = seg.line.toString().padEnd(3);
-                const al = seg.airline.padEnd(3);
-                const fn = seg.flightNumber.padEnd(4);
-                const cls = seg.class.padEnd(2);
-                const dt = seg.date.padEnd(6);
-                const od = (seg.origin + seg.dest).padEnd(7);
-                const st = seg.status.padEnd(5);
-                // Types for DB PNR might be loose, let's type cast or check if exist
-                const s = seg as any;
-                const t1 = s.depTime ? s.depTime.replace(':', '').padEnd(5) : '     ';
-                const t2 = s.arrTime ? s.arrTime.replace(':', '').padEnd(5) : '     ';
-
-                output += `${lineStr}${al}${fn}${cls}${dt}${od}${st}${t1}${t2}/E\n`;
-            });
-            output += "\n";
-
-            // Assume no contacts saved in DB yet (Task didn't specify Contact persistence, but ideally yes. Skip for now to stick to scope)
-
-            if (dbPnr.remarks && dbPnr.remarks.length > 0) {
-                dbPnr.remarks.forEach(rm => output += `RM ${rm}\n`);
-            }
-            if (dbPnr.osi && dbPnr.osi.length > 0) {
-                dbPnr.osi.forEach(o => output += `OSI ${o}\n`);
-            }
-
-            return output;
+            // Format Display using ScreenRenderer
+            return ScreenRenderer.renderPnr(
+                pnr,
+                dbPnr.passengers,
+                dbPnr.segments,
+                [], // Contacts not persisted in DB model yet, passing empty array
+                [], // Ticketing not persisted in DB model details yet
+                dbPnr.remarks || [],
+                dbPnr.osi || []
+            );
         }
 
         return `PNR ${pnr} NOT FOUND`;
