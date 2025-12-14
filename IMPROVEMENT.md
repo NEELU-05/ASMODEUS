@@ -15,9 +15,9 @@ The ASMODEUS system is **100% complete and functional** for training purposes. T
 
 - [x] Import 55k+ airports from CSV to MySQL (Top 50 Simulated)
 - [x] Persistent PNR storage
-- [ ] Ticket history tracking
-- [ ] User session persistence
-- [ ] Analytics and reporting
+- [x] Ticket history tracking (ticked table)
+- [x] User session persistence (agent_sessions table)
+- [x] Analytics and reporting (command_logs table)
 
 **Benefits:**
 - Persistent data across restarts

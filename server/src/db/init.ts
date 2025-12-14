@@ -98,6 +98,40 @@ export async function initDatabase() {
             )
         `);
 
+        // Tickets
+        await conn.execute(`
+            CREATE TABLE IF NOT EXISTS tickets (
+                ticket_number VARCHAR(20) PRIMARY KEY,
+                pnr_locator CHAR(6),
+                passenger_name VARCHAR(100),
+                amount DECIMAL(10,2),
+                agent_id VARCHAR(10),
+                issued_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+
+        // Agent Sessions
+        await conn.execute(`
+            CREATE TABLE IF NOT EXISTS agent_sessions (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                session_id VARCHAR(50),
+                agent_id VARCHAR(10),
+                sign_in_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                sign_out_time TIMESTAMP NULL
+            )
+        `);
+
+        // Command Logs
+        await conn.execute(`
+            CREATE TABLE IF NOT EXISTS command_logs (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                session_id VARCHAR(50),
+                command_type VARCHAR(50),
+                raw_command TEXT,
+                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+
         console.log('✅ Database Schema initialized.');
     } catch (err) {
         console.error('❌ Database init error:', err);

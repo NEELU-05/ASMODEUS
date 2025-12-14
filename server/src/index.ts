@@ -7,6 +7,7 @@ import { CommandParser } from './engine/CommandParser.js';
 import { CommandProcessor } from './engine/CommandProcessor.js';
 import { Session } from './engine/Session.js';
 import { checkConnection } from './db/mysql.js';
+import { initDatabase } from './db/init.js';
 import { SCENARIOS } from './scenarios/data.js';
 
 dotenv.config();
@@ -77,6 +78,9 @@ async function startServer() {
         // Check database connection (optional)
         if (process.env.DB_HOST) {
             await checkConnection();
+            if (process.env.INIT_DB === 'true') {
+                await initDatabase();
+            }
         } else {
             console.log('ℹ️  Running in memory-only mode (no database)');
         }

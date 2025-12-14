@@ -4,9 +4,13 @@ import { AvailabilityService } from './AvailabilityService.js';
 import { pool } from '../db/mysql.js';
 
 import { PnrService } from './PnrService.js';
+import { TicketService } from './TicketService.js';
+import { LoggerService } from './LoggerService.js';
 
 export class CommandProcessor {
     static async process(session: Session, intent: CommandIntent): Promise<string> {
+        // Log all commands
+        await LoggerService.logCommand(session.sessionId, intent.type, intent.raw);
 
         // Validate Session State (except for sign-in)
         if (!session.signedIn && intent.type !== CommandType.SIGN_IN) {
@@ -146,12 +150,13 @@ export class CommandProcessor {
     }
 
     // ===== SIGN IN/OUT =====
-    private static handleSignIn(session: Session, args: any): string {
+    private static async handleSignIn(session: Session, args: any): Promise<string> {
         if (session.signedIn) {
             return "ALREADY SIGNED IN";
         }
         const agentId = args.agentId || "AGENT";
         session.signIn(agentId);
+        await LoggerService.logSessionStart(session.sessionId, agentId);
 
         const now = new Date();
         const dateStr = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' }).toUpperCase().replace(/ /g, '');
@@ -160,7 +165,8 @@ export class CommandProcessor {
         return `OK ${agentId} - ASMODEUS READY\n${dateStr} ${timeStr}`;
     }
 
-    private static handleSignOut(session: Session): string {
+    private static async handleSignOut(session: Session): Promise<string> {
+        await LoggerService.logSessionEnd(session.sessionId);
         session.signOut();
         return "SIGNED OUT";
     }
@@ -320,6 +326,19 @@ export class CommandProcessor {
 
         // Generate ticket number
         const ticketNumber = `176-${Math.floor(Math.random() * 1000000000)}`;
+
+        // Save Ticket
+        const paxName = session.area.passengers.length > 0
+            ? `${session.area.passengers[0].lastName}/${session.area.passengers[0].firstName}`
+            : 'UNKNOWN';
+
+        await TicketService.issueTicket({
+            ticketNumber,
+            pnrLocator: session.area.currentPnr,
+            passengerName: paxName,
+            amount: session.area.pricedFare,
+            agentId: session.agentId
+        });
 
         let output = "TICKET ISSUED\n";
         output += `TKT: ${ticketNumber}\n`;
