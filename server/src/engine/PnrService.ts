@@ -150,4 +150,42 @@ export class PnrService {
         const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
         return `${day}${months[monthIndex]}`;
     }
+
+    static async logHistory(locator: string, action: string, details: string, agentId: string): Promise<void> {
+        try {
+            const conn = await pool.getConnection();
+            try {
+                await conn.execute(
+                    'INSERT INTO pnr_history (pnr_locator, action, details, agent_id) VALUES (?, ?, ?, ?)',
+                    [locator, action, details, agentId]
+                );
+            } finally {
+                conn.release();
+            }
+        } catch (err) {
+            console.error(`❌ Failed to log history for ${locator}:`, err);
+        }
+    }
+
+    static async getHistory(locator: string): Promise<string[]> {
+        try {
+            const conn = await pool.getConnection();
+            try {
+                const [rows]: any = await conn.execute(
+                    'SELECT action, details, agent_id, timestamp FROM pnr_history WHERE pnr_locator = ? ORDER BY timestamp ASC',
+                    [locator]
+                );
+
+                return rows.map((row: any) => {
+                    const time = new Date(row.timestamp).toISOString().replace('T', ' ').substring(0, 19);
+                    return `${time}  ${row.agent_id.padEnd(6)}  ${row.action.padEnd(15)} ${row.details}`;
+                });
+            } finally {
+                conn.release();
+            }
+        } catch (err) {
+            console.error(`❌ Failed to get history for ${locator}:`, err);
+            return [];
+        }
+    }
 }

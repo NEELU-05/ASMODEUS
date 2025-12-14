@@ -132,6 +132,18 @@ export async function initDatabase() {
             )
         `);
 
+        // PNR History
+        await conn.execute(`
+            CREATE TABLE IF NOT EXISTS pnr_history (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                pnr_locator CHAR(6),
+                action VARCHAR(50),
+                details TEXT,
+                agent_id VARCHAR(10),
+                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+
         console.log('✅ Database Schema initialized.');
     } catch (err) {
         console.error('❌ Database init error:', err);

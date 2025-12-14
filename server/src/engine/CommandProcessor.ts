@@ -135,7 +135,7 @@ export class CommandProcessor {
 
                 // ===== HISTORY & QUEUE =====
                 case CommandType.HISTORY:
-                    return "RH - HISTORY (NOT YET IMPLEMENTED)";
+                    return await this.handleHistory(session, intent.args);
 
                 case CommandType.QUEUE_START:
                 case CommandType.QUEUE_DISPLAY:
@@ -411,6 +411,7 @@ export class CommandProcessor {
 
         // Save to Database
         await PnrService.createPnr(locator, session.area.passengers, session.area.segments, session.area.remarks, session.area.osi);
+        await PnrService.logHistory(locator, 'PNR CREATION', 'Initial PNR stored', session.agentId);
 
         // Format PNR display
         let output = `PNR CREATED: ${locator}\n\n`;
@@ -474,6 +475,9 @@ export class CommandProcessor {
 
         // Save to Database
         const saved = await PnrService.createPnr(locator, session.area.passengers, session.area.segments, session.area.remarks, session.area.osi);
+        if (saved) {
+            await PnrService.logHistory(locator, 'END TRANSACTION', 'PNR modified and saved', session.agentId);
+        }
         const dbMsg = saved ? "" : " (LOCAL ONLY - DB ERROR)";
 
         return `PNR SAVED: ${locator}${dbMsg}`;
@@ -690,5 +694,23 @@ TOPICS:
             locator += chars.charAt(Math.floor(Math.random() * chars.length));
         }
         return locator;
+    }
+
+    // ===== HISTORY =====
+    private static async handleHistory(session: Session, args: any): Promise<string> {
+        if (!session.area.currentPnr) {
+            return "NO PNR IN CONTEXT";
+        }
+
+        const history = await PnrService.getHistory(session.area.currentPnr);
+        if (history.length === 0) {
+            return "NO HISTORY FOUND";
+        }
+
+        let output = `** PNR HISTORY - ${session.area.currentPnr} **\n`;
+        output += `TIME                 AGENT   ACTION          DETAILS\n`;
+        output += `--------------------------------------------------------\n`;
+        history.forEach(line => output += line + "\n");
+        return output;
     }
 }
