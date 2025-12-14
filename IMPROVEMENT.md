@@ -129,8 +129,8 @@ The ASMODEUS system is **100% complete and functional** for training purposes. T
 **Priority:** Medium
 **Effort:** Medium
 
-- [ ] Command autocomplete (Removed as per user request)
-- [x] Syntax highlighting
+- [x] Command autocomplete (Restored)
+- [ ] Syntax highlighting (Removed as per user request)
 - [x] Error highlighting
 - [x] Command history navigation (Up/Down Arrows)
 - [ ] Command history search (Ctrl+R)

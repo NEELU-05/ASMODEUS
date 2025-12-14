@@ -10,22 +10,11 @@ export const CrypticTerminal: React.FC = () => {
     const [commandHistory, setCommandHistory] = useState<string[]>([]);
     const [historyIndex, setHistoryIndex] = useState(-1);
     const [input, setInput] = useState('');
+    const [suggestion, setSuggestion] = useState('');
     const [sessionId] = useState(() => 'SESS_' + Math.random().toString(36).substr(2, 9));
     const bottomRef = useRef<HTMLDivElement>(null);
 
-    const highlightSyntax = (text: string) => {
-        const processed = text
-            // Highlight Dates (e.g., 12JAN, 05MAR)
-            .replace(/(\d{2}[A-Z]{3})/g, '<span class="text-yellow-400">$1</span>')
-            // Highlight Status Codes (HK, TK, UC, UN, KL, KK)
-            .replace(/\b(HK|TK|UC|UN|KL|KK)\b/g, '<span class="text-green-400 font-bold">$1</span>')
-            // Highlight Error Keywords
-            .replace(/\b(ERROR|INVALID|CHECK|NO ITIN|NEED)\b/g, '<span class="text-red-400 font-bold">$1</span>')
-            // Highlight PNR Locators
-            .replace(/(PNR CREATED: )([A-Z0-9]{6})/g, '$1<span class="text-cyan-400 font-bold text-lg">$2</span>');
-
-        return processed;
-    };
+    const COMMANDS = ['AN', 'SS', 'NM', 'AP', 'TK', 'ER', 'ET', 'IG', 'RT', 'FXP', 'TTP', 'HE', 'MD', 'MU', 'RH', 'QS', 'QD', 'QE', 'AC', 'MN', 'MY'];
 
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -40,6 +29,7 @@ export const CrypticTerminal: React.FC = () => {
         setCommandHistory(prev => [cmd, ...prev]);
         setHistoryIndex(-1);
         setInput('');
+        setSuggestion('');
 
         try {
             // Use relative path - Vite proxy will handle dev, Express static will handle prod
@@ -88,13 +78,8 @@ export const CrypticTerminal: React.FC = () => {
             ${line.type === 'input' ? 'text-gray-400' : ''}
             ${line.type === 'output' ? 'terminal-text' : ''}
             ${line.type === 'error' ? 'text-red-500' : ''}
-            whitespace-pre-wrap font-mono
           `}>
-                        {line.type === 'output' ? (
-                            <span dangerouslySetInnerHTML={{ __html: highlightSyntax(line.content) }} />
-                        ) : (
-                            line.content
-                        )}
+                        {line.content}
                     </div>
                 ))}
                 <div ref={bottomRef} />
@@ -102,10 +87,25 @@ export const CrypticTerminal: React.FC = () => {
 
             <form onSubmit={handleSubmit} className="flex gap-2 border-t border-gray-700 pt-2 relative">
                 <span className="text-green-500 font-bold">&gt;</span>
+                {suggestion && input && suggestion.startsWith(input) && (
+                    <div className="absolute left-6 top-2 text-gray-600 pointer-events-none font-mono">
+                        {suggestion}
+                    </div>
+                )}
                 <input
                     type="text"
                     value={input}
-                    onChange={(e) => setInput(e.target.value.toUpperCase())}
+                    onChange={(e) => {
+                        const val = e.target.value.toUpperCase();
+                        setInput(val);
+                        // Simple Autocomplete Logic
+                        if (val.length >= 1) {
+                            const match = COMMANDS.find(c => c.startsWith(val));
+                            setSuggestion(match ? match : '');
+                        } else {
+                            setSuggestion('');
+                        }
+                    }}
                     onKeyDown={(e) => {
                         if (e.key === 'ArrowUp') {
                             e.preventDefault();
@@ -124,6 +124,10 @@ export const CrypticTerminal: React.FC = () => {
                                 setHistoryIndex(-1);
                                 setInput('');
                             }
+                        } else if (e.key === 'Tab' && suggestion) {
+                            e.preventDefault();
+                            setInput(suggestion);
+                            setSuggestion('');
                         }
                     }}
                     className="input-field relative z-10 bg-transparent"
