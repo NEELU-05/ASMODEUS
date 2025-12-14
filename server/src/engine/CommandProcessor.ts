@@ -131,8 +131,8 @@ export class CommandProcessor {
                     return "CHECK ENTRY";
             }
         } catch (err: any) {
-            console.error(err);
-            return "SYSTEM ERROR";
+            console.error('Command Processing Error:', err);
+            return `SYSTEM ERROR: ${err.message}`;
         }
     }
 

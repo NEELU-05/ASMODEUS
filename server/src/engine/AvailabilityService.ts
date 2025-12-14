@@ -41,7 +41,13 @@ export class AvailabilityService {
         const origins = cityMap[origin] || [origin];
 
         // Generate flights for first matching pair (Simplification for v1.0)
-        const flights = await FlightGenerator.generateFlights(origins[0], dests[0], dateStr, direct);
+        let flights: any[] = [];
+        try {
+            flights = await FlightGenerator.generateFlights(origins[0], dests[0], dateStr, direct);
+        } catch (error: any) {
+            console.error("Flight Generation Error:", error);
+            return `AVAILABILITY ERROR: ${error.message}`;
+        }
 
         if (flights.length === 0) {
             return `NO FLIGHTS FOUND FOR ${origin} -> ${dest}`;

@@ -51,7 +51,7 @@ Need to implement handlers for:
 1. **Availability & Schedule**
    - ✅ AN/AD - Availability (done)
    - ⚠ SN/SD - Schedule (no seat counts)
-   - ⚠ MD/MU - Scroll pagination
+   - ✅ MD/MU - Scroll pagination
 
 2. **Booking Operations**
    - ⚠ SS - Sell seats (reduce inventory, add to working area)
