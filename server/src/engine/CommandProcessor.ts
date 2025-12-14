@@ -193,33 +193,50 @@ export class CommandProcessor {
     private static async handleSell(session: Session, args: any): Promise<string> {
         const { numSeats, bookingClass, lineNumber } = args;
 
-        // Check if availability results exist
+        // Check availability
         if (!session.area.availabilityResults || session.area.availabilityResults.length === 0) {
             return "NO AVAILABILITY IN WORKING AREA";
         }
 
-        // Check line number
+        // Validate Line Number
         if (lineNumber < 1 || lineNumber > session.area.availabilityResults.length) {
             return "INVALID LINE NUMBER";
         }
 
         const flight = session.area.availabilityResults[lineNumber - 1];
 
-        // Check class availability
-        if (!flight.classes[bookingClass] || flight.classes[bookingClass] < numSeats) {
-            return "NO SEATS AVAILABLE";
+        // Check Class Existence
+        if (flight.classes[bookingClass] === undefined) {
+            return `INVALID CLASS - ${bookingClass} NOT FOUND ON FLIGHT`;
         }
 
-        // Add segment to working area
+        const avail = flight.classes[bookingClass];
+        let status = `HK${numSeats}`;
+
+        // Inventory Logic
+        if (avail < numSeats) {
+            // Determine if Waitlist is allowed (Premium/Standard classes vs Discount)
+            // Premium/Standard: F, J, C, D, Y, B, M, H, Q
+            // Discount: K, L, V, T, S, W
+            const isWaitlistable = ['F', 'J', 'C', 'D', 'Y', 'B', 'M', 'H', 'Q'].includes(bookingClass);
+
+            if (isWaitlistable) {
+                status = `LL${numSeats}`; // Waitlist
+            } else {
+                status = `UC${numSeats}`; // Unable Closed
+            }
+        }
+
+        // Add segment
         const segment: FlightSegment = {
             line: session.area.segments.length + 1,
             airline: flight.airline,
             flightNumber: flight.flightNumber,
             class: bookingClass,
-            date: '12JAN', // TODO: Use actual date from availability
+            date: '12JAN', // TODO: improve context date
             origin: flight.origin,
             dest: flight.destination,
-            status: `HK${numSeats}`,
+            status: status,
             seats: numSeats,
             depTime: flight.depTime,
             arrTime: flight.arrTime
@@ -228,7 +245,6 @@ export class CommandProcessor {
         session.area.segments.push(segment);
 
         // Format Segment Response (Fixed Width)
-        // 1  AI 631 Y 12JAN DELBOM HK1  0850 1050 /E
         const lineStr = segment.line.toString().padEnd(3);
         const al = segment.airline.padEnd(3);
         const fn = segment.flightNumber.padEnd(4);
@@ -239,7 +255,15 @@ export class CommandProcessor {
         const t1 = segment.depTime ? segment.depTime.replace(':', '').padEnd(5) : '     ';
         const t2 = segment.arrTime ? segment.arrTime.replace(':', '').padEnd(5) : '     ';
 
-        return `${lineStr}${al}${fn}${cls}${dt}${od}${st}${t1}${t2}/E`;
+        let response = `${lineStr}${al}${fn}${cls}${dt}${od}${st}${t1}${t2}/E`;
+
+        if (status.startsWith('UC')) {
+            response += `\nUNABLE TO CONFIRM - CLASS CLOSED`;
+        } else if (status.startsWith('LL')) {
+            response += `\nWAITLIST CLOSED - ADDED TO LIST`;
+        }
+
+        return response;
     }
 
     // ===== NEED =====
